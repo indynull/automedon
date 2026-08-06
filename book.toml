@@ -1,0 +1,17 @@
+[book]
+title = "Automedon"
+description = "Drive local AI coding-agent CLIs through one event model"
+authors = ["Automedon contributors"]
+language = "en"
+src = "docs"
+
+[build]
+build-dir = "book"
+create-missing = false
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/indynull/automedon"
+edit-url-template = "https://github.com/indynull/automedon/edit/main/docs/{path}"
+site-url = "/automedon/"
