@@ -508,4 +508,111 @@ mod tests {
             .windows(2)
             .any(|w| w[0] == "--output-format" && w[1] == "stream-json"));
     }
+
+    #[test]
+    fn prepare_yolo_resume_continue_model_and_partial() {
+        let a = CursorAdapter;
+        let mut opts = LaunchOptions {
+            yolo: true,
+            model: Some("sonnet".into()),
+            ..Default::default()
+        };
+        opts.extra.insert("binary".into(), json!("cursor-agent"));
+        opts.extra.insert("stream_partial".into(), json!(true));
+        let args = a
+            .prepare("hi", &opts, &TurnContext::default())
+            .unwrap()
+            .spawn
+            .unwrap()
+            .args;
+        assert!(args.iter().any(|x| x == "--force"));
+        assert!(args.iter().any(|x| x == "--stream-partial-output"));
+        assert!(args
+            .windows(2)
+            .any(|w| w[0] == "--model" && w[1] == "sonnet"));
+
+        let mut ctx = TurnContext {
+            turn: 2,
+            session_id: Some("sess-1".into()),
+            ..Default::default()
+        };
+        let args = a.prepare("again", &opts, &ctx).unwrap().spawn.unwrap().args;
+        assert!(args
+            .windows(2)
+            .any(|w| w[0] == "--resume" && w[1] == "sess-1"));
+
+        ctx.session_id = None;
+        let args = a.prepare("again", &opts, &ctx).unwrap().spawn.unwrap().args;
+        assert!(args.iter().any(|x| x == "--continue"));
+
+        opts.extra.insert("resume".into(), json!("from-extra"));
+        let args = a
+            .prepare("hi", &opts, &TurnContext::default())
+            .unwrap()
+            .spawn
+            .unwrap()
+            .args;
+        assert!(args
+            .windows(2)
+            .any(|w| w[0] == "--resume" && w[1] == "from-extra"));
+    }
+
+    #[test]
+    fn parse_edges_auth_raw_error_result_and_names() {
+        let a = CursorAdapter;
+        assert!(matches!(
+            a.parse_line("Authentication required. Please run 'agent login'")
+                .first(),
+            Some(Event::Error { .. })
+        ));
+        assert!(matches!(
+            a.parse_line("not-json-line").first(),
+            Some(Event::Raw { .. })
+        ));
+        assert!(a.parse_line("").is_empty());
+        assert!(a
+            .parse_line(r#"{"type":"thinking","subtype":"delta","text":""}"#)
+            .is_empty());
+        assert!(a.parse_line(r#"{"type":"user","message":{}}"#).is_empty());
+        assert!(a
+            .parse_line(r#"{"type":"system","subtype":"init"}"#)
+            .is_empty());
+        let err = a.parse_line(
+            r#"{"type":"result","subtype":"error","is_error":true,"result":"boom","session_id":"s"}"#,
+        );
+        assert!(err.iter().any(|e| matches!(e, Event::Error { .. })));
+        assert!(err.iter().any(|e| matches!(e, Event::TurnComplete { .. })));
+
+        let bare = a.parse_line(r#"{"type":"tool_call","subtype":"started","call_id":"c"}"#);
+        assert!(
+            bare.iter().any(|e| matches!(e, Event::Raw { .. }))
+                || bare
+                    .iter()
+                    .any(|e| matches!(e, Event::ToolCall { name, .. } if name == "unknown")),
+            "{bare:?}"
+        );
+
+        assert_eq!(cursor_tool_name("editToolCall"), "edit");
+        assert_eq!(cursor_tool_name("shellToolCall"), "shell");
+        assert_eq!(cursor_tool_name("readFileToolCall"), "read");
+        assert_eq!(cursor_tool_name("grepToolCall"), "grep");
+        assert_eq!(cursor_tool_name("deleteToolCall"), "delete");
+        assert_eq!(cursor_tool_name("lsToolCall"), "ls");
+        assert_eq!(cursor_tool_name("weirdThingToolCall"), "weirdThing");
+        assert_eq!(cursor_tool_name("ToolCall"), "unknown");
+    }
+
+    #[test]
+    fn prepare_cursor_ide_binary_uses_agent_subcommand() {
+        let a = CursorAdapter;
+        let mut opts = LaunchOptions::default();
+        opts.extra.insert("binary".into(), json!("cursor"));
+        let p = a
+            .prepare("hi", &opts, &TurnContext::default())
+            .unwrap()
+            .spawn
+            .unwrap();
+        assert_eq!(p.program, PathBuf::from("cursor"));
+        assert!(p.args.iter().any(|x| x == "agent"));
+    }
 }
