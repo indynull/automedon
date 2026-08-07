@@ -1,0 +1,26 @@
+[package]
+name = "automedon-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "medon — CLI for Automedon harness scripts"
+readme = "../../README.md"
+
+[[bin]]
+name = "medon"
+path = "src/main.rs"
+
+[dependencies]
+automedon.workspace = true
+anyhow.workspace = true
+clap.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+[dev-dependencies]
+assert_cmd = "2"
+predicates = "3"
+tempfile = "3"
