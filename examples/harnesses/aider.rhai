@@ -1,10 +1,11 @@
-// Live multi-turn: OpenCode.
-// Needs `opencode` on PATH + a configured provider (e.g. xAI after login).
+// Multi-turn Aider via chat-history restore.
+// Requires: `aider` on PATH and model credentials for the model you pass.
+// Set `model` (and any env keys your Aider model needs) for your backend.
 //
-//   medon run examples/live/opencode.rhai --print
+//   medon run examples/harnesses/aider.rhai --print
 
-let s = launch("opencode", #{
-    yolo: true,
+let s = launch("aider", #{
+    no_git: true,
     timeout_ms: 180_000
 });
 

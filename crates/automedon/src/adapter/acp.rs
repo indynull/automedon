@@ -118,7 +118,7 @@ pub fn parse_value(v: &Value) -> Vec<Event> {
 
     let method = v.get("method").and_then(|m| m.as_str()).unwrap_or("");
 
-    // xAI hook lifecycle (extends ACP notifications)
+    // ACP hook lifecycle notifications (product-specific extensions)
     if method == "_x.ai/session_notification" || method.ends_with("session_notification") {
         let update = v.get("params").and_then(|p| p.get("update")).unwrap_or(v);
         let su = update

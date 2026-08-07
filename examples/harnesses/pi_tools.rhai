@@ -1,14 +1,11 @@
-// Live waits: Pi tool lifecycle → PreToolUse / PostToolUse + tool events.
-// Needs `pi` on PATH + xAI credentials for Pi (`provider=xai`).
+// Pi tool lifecycle → PreToolUse / PostToolUse + tool waits.
+// Requires: `pi` on PATH and Pi provider credentials for your account.
+// Optional launch extras: provider, model.
 //
-//   medon run examples/wait_hooks.rhai --print
-//
-// Offline: examples/mock/wait_hooks.rhai
+//   medon run examples/harnesses/pi_tools.rhai --print
 
 let s = launch("pi", #{
     yolo: true,
-    provider: "xai",
-    model: "grok-4.5",
     multi_turn: true,
     timeout_ms: 180_000
 });
@@ -17,7 +14,6 @@ s.prompt(`Use a shell/run tool exactly once to execute:
   echo AUTOMEDON_HOOKS
 Then finish your reply with the line: AUTOMEDON_HOOKS_DONE`);
 
-// Block until the stream emits each signal (tool lifecycle maps to hooks on Pi).
 s.wait(timeout_ms(wait_hook_started("PreToolUse"), 120_000));
 s.wait(timeout_ms(wait_tool_any(), 120_000));
 s.wait(timeout_ms(wait_hook_finished("PostToolUse"), 120_000));

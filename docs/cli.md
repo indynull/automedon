@@ -14,9 +14,8 @@ medon --help
 Run a Rhai script file.
 
 ```bash
-medon run examples/smoke.rhai           # live grok
-medon run examples/smoke.rhai --print   # print script return value
-medon run examples/mock/smoke.rhai      # offline mock
+medon run examples/mock/smoke.rhai --print
+medon run examples/harnesses/grok.rhai --print
 ```
 
 ### `eval`

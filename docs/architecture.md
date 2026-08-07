@@ -6,7 +6,7 @@ Coding agent CLIs differ in flags and stream formats. They share the same job: r
 
 - **General drive/assert API** — one `Session`, `Wait`, `Expect`, normalized `Event` for concepts all harnesses share (when present).
 - **Specialized adapters** — one module per product; only place for binary discovery, argv, frame parse, encode, and quirks.
-- **Capabilities** — product adapters advertise only live-proven features; calls that need a missing feature fail with a clear error.
+- **Capabilities** — product adapters advertise features the driver implements; calls that need a missing feature fail with a clear error.
 
 ## Abstract concepts (general API)
 
@@ -60,7 +60,7 @@ No harness-specific types leak into `Session`.
 
 ## Capability honesty
 
-Product adapters advertise only **live-proven** bits. Mock may advertise full matrix for offline tests. Scripts that call `approve` / `approve_plan` without the bit get a clear error: `capability not supported on <harness>: permissions_interactive`.
+Product adapters advertise bits for control paths they implement. Mock may advertise a full matrix for offline tests. Scripts that call `approve` / `approve_plan` without the bit get a clear error: `capability not supported on <harness>: permissions_interactive`.
 
 ## Non-goals
 

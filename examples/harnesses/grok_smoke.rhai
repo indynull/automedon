@@ -1,9 +1,7 @@
-// Live smoke: Grok Build headless stream.
-// Needs `grok` on PATH + grok auth.
+// One-turn Grok Build smoke.
+// Requires: `grok` on PATH and product authentication.
 //
-//   medon run examples/smoke.rhai --print
-//
-// Offline: examples/mock/smoke.rhai
+//   medon run examples/harnesses/grok_smoke.rhai --print
 
 let s = launch("grok", #{
     yolo: true,

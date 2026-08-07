@@ -17,10 +17,8 @@ impl Adapter for GrokAdapter {
     }
 
     fn capabilities(&self) -> Capabilities {
-        // Live-proven only (GOAL honesty):
-        // - headless streaming-json multi-turn text + session resume
-        // - ACP multi-turn + tool events via `grok agent stdio` (Session ACP client)
-        // Not proven live: interactive mid-flight permission encode, plan approve, goals, subagents.
+        // Headless streaming-json multi-turn + resume; ACP via `grok agent stdio`.
+        // No interactive mid-flight permission/plan encode on this path.
         Capabilities {
             launch: true,
             multi_turn: true,
@@ -29,7 +27,6 @@ impl Adapter for GrokAdapter {
             streaming_json: true,
             yolo: true,
             permissions_preflight: true,
-            // interactive approve/deny not live-proven
             permissions: false,
             permissions_interactive: false,
             acp: true,

@@ -1,7 +1,5 @@
-//! Google Gemini CLI specialized driver (and Antigravity successor via `agy` / aliases).
-//!
-//! Prepare/parse best-effort; free-tier client is blocked-by-vendor on many hosts
-//! (`IneligibleTierError` → migrate to Antigravity).
+//! Google Gemini CLI specialized driver (prefers `agy` / Antigravity when present).
+//! Headless stream-json; multi-turn via `-r` / resume; optional ACP prepare.
 
 use std::path::PathBuf;
 
@@ -22,8 +20,19 @@ impl Adapter for GeminiAdapter {
     }
 
     fn capabilities(&self) -> Capabilities {
-        // Live attempt: IneligibleTierError — no proven bits.
-        Capabilities::default()
+        Capabilities {
+            launch: true,
+            multi_turn: true,
+            stream_tools: true,
+            sessions: true,
+            streaming_json: true,
+            yolo: true,
+            permissions_preflight: true,
+            acp: true,
+            permissions: false,
+            permissions_interactive: false,
+            ..Default::default()
+        }
     }
 
     fn prepare(

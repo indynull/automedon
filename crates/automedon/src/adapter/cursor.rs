@@ -21,8 +21,18 @@ impl Adapter for CursorAdapter {
     }
 
     fn capabilities(&self) -> Capabilities {
-        // blocked-by-vendor (agent login / CURSOR_API_KEY) until live.
-        Capabilities::default()
+        Capabilities {
+            launch: true,
+            multi_turn: true,
+            stream_tools: true,
+            sessions: true,
+            streaming_json: true,
+            yolo: true,
+            permissions_preflight: true,
+            permissions: false,
+            permissions_interactive: false,
+            ..Default::default()
+        }
     }
 
     fn prepare(

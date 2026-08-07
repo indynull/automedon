@@ -17,8 +17,7 @@ impl Adapter for PiAdapter {
     }
 
     fn capabilities(&self) -> Capabilities {
-        // Live multi-turn (xAI). Tools/hooks: stream maps tool_call lifecycle → Tool* + Hook*
-        // (PreToolUse/PostToolUse); wait_hooks advertised after parse is wired.
+        // Multi-turn sessions; tool stream maps tool lifecycle → Tool* + Hook* (Pre/PostToolUse).
         Capabilities {
             launch: true,
             multi_turn: true,
@@ -83,7 +82,7 @@ impl Adapter for PiAdapter {
         if opts.yolo {
             args.push("--approve".into());
         }
-        // Prefer explicit provider (e.g. xai); model may be "grok-4.5" or "xai/grok-4.5".
+        // Prefer explicit provider; model may be bare or "provider/model".
         if let Some(provider) = opts.extra.get("provider").and_then(|v| v.as_str()) {
             args.push("--provider".into());
             args.push(provider.into());
@@ -327,7 +326,7 @@ fn parse_pi_message_update(value: &Value) -> Vec<Event> {
                 vec![Event::ThinkingDelta { text }]
             }
         }
-        // Live Pi JSON (xAI path): tool calls stream inside message_update.
+        // Pi JSON: tool calls stream inside message_update.
         "toolcall_start" | "toolcall_end" => {
             let tc = ev.get("toolCall");
             let (id, name, input) = if let Some(tc) = tc {

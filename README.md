@@ -5,12 +5,12 @@ Drive local AI coding-agent CLIs through one event model: specialized adapters, 
 | | |
 |--|--|
 | CLI | **`medon`** |
-| Docs | Handbook under `docs/` (GitHub Pages after deploy) |
-| Status | [MATRIX.md](MATRIX.md) |
+| Docs | Handbook under `docs/` ([GitHub Pages](https://indynull.github.io/automedon/)) |
+| Capabilities | [MATRIX.md](MATRIX.md) |
 | Goal | [GOAL.md](GOAL.md) |
 | Architecture | [docs/architecture.md](docs/architecture.md) |
 
-**1.0 goal:** specialized drivers for the agreed harness set; general drive/assert API; live proof only. Mock is test infrastructure only.
+**1.0 goal:** specialized drivers for the agreed harness set; general drive/assert API. Mock is offline test infrastructure only.
 
 ## What it is
 
@@ -19,35 +19,29 @@ Coding-agent CLIs each have their own flags and JSON streams. Scripts need one w
 Automedon:
 
 - Uses a **shared event stream** (`TextDelta`, `ToolCall`, `TurnComplete`, plan/goal/permission, `Done`, …)
-- Supports **multi-turn** on one `Session` (Grok `--resume`, Pi `--session-id` / `--continue`, mock history, …)
-- Ships **adapters** for product-specific flags and JSON shapes (Grok, Pi, Claude, … plus `generic` and in-process `mock`)
+- Supports **multi-turn** on one `Session` (resume, session id, chat history, …)
+- Ships **adapters** for product-specific flags and JSON shapes (plus `generic` and in-process `mock`)
 - Exposes a **Rust API** and a **Rhai DSL**
 - Runs on **Tokio** with bounded channels and kill-on-drop process supervision
 
 ## Quick start
 
 ```bash
-# Library + CLI (binary: medon)
 cargo build -p automedon-cli
 cargo install --path crates/automedon-cli   # installs `medon` on PATH
 
-# Live product examples (need CLI + auth — Grok / Pi)
-medon run examples/smoke.rhai --print          # grok
-medon run examples/multi_turn.rhai --print     # grok multi-turn
-medon run examples/wait_hooks.rhai --print     # pi tools + hooks
-medon run examples/grok_hello.rhai --print     # grok: write fib + tests
-
-# Per-product multi-turn smokes
-medon run examples/live/grok.rhai --print
-# also: pi.rhai, aider.rhai, copilot.rhai, …
-# see examples/live/README.md
-
-# Offline (mock only — no product binary)
+# Offline (mock — no product CLI)
+medon run examples/mock/smoke.rhai --print
 medon run examples/mock/multi_turn.rhai --print
 medon shot mock "hello" --scenario echo
+
+# Product harnesses (need that CLI + auth)
+medon run examples/harnesses/grok.rhai --print
+medon run examples/harnesses/pi.rhai --print
+# see examples/README.md and examples/harnesses/README.md
 ```
 
-### Multi-turn (Rhai, Grok)
+### Multi-turn (Rhai)
 
 ```rust
 let s = launch("grok", #{ yolo: true, multi_turn: true, timeout_ms: 180_000 });
@@ -59,10 +53,10 @@ s.expect(timeout_ms(text("AUTOMEDON_T2"), 120_000));
 s.close();
 ```
 
-### Waits (Rhai, Pi tools/hooks)
+### Waits (Rhai)
 
 ```rust
-let s = launch("pi", #{ yolo: true, provider: "xai", model: "grok-4.5", timeout_ms: 180_000 });
+let s = launch("pi", #{ yolo: true, multi_turn: true, timeout_ms: 180_000 });
 s.prompt("Run a shell tool once: echo hi. End with DONE.");
 s.wait(timeout_ms(wait_hook_started("PreToolUse"), 120_000));
 s.wait(timeout_ms(wait_tool_any(), 120_000));
@@ -70,7 +64,6 @@ s.wait(timeout_ms(wait_text("DONE"), 120_000));
 ```
 
 Rust: `s.wait(Wait::hook("PreToolUse")).await?` or `Wait::any([Wait::permission(), Wait::text("DONE")])`.
-`expect(...)` still works and shares the same predicates.
 
 ### Rust API
 
@@ -95,35 +88,33 @@ async fn main() -> automedon::Result<()> {
 
 ## Adapters
 
-One specialized module per product harness. Capability bits and live status: **[MATRIX.md](MATRIX.md)**.
+One specialized module per product harness. What each driver implements: **[MATRIX.md](MATRIX.md)**.
 
-### Tier A (required product drivers)
+### Tier A
 
 | Id | Binary | Notes |
 |----|--------|--------|
-| `claude` | `claude` | Claude Code: `-p` + `stream-json`; `--resume` |
-| `codex` | `codex` | OpenAI Codex: `exec --json`; optional ACP via `extra.acp` |
-| `gemini` | `gemini` | Gemini CLI: `-p` + `stream-json`; `-r` resume; `--acp`; aliases `antigravity` / `agy` |
-| `opencode` | `opencode` | OpenCode: `run --format json`; session flag; ACP via npx path |
-| `grok` | `grok` | Grok Build: `streaming-json` + `--resume`; ACP: `extra.acp` → `grok agent stdio` |
-| `cursor` | `cursor-agent` / `cursor` | Cursor agent CLI when installed |
+| `claude` | `claude` | `-p` + stream-json; `--resume` / `--continue` |
+| `codex` | `codex` | `exec --json`; optional ACP via `extra.acp` |
+| `gemini` | `gemini` / `agy` | stream-json; `-r` resume; optional ACP |
+| `opencode` | `opencode` | `run --format json`; session / continue |
+| `grok` | `grok` | streaming-json + `--resume`; ACP via `extra.acp` |
+| `cursor` | `agent` / `cursor-agent` / `cursor` | stream-json; resume / continue |
 
 ### Tier B
 
 | Id | Binary | Notes |
 |----|--------|--------|
-| `aider` | `aider` | Multi-turn via `--chat-history-file` + `--restore-chat-history`; xAI: `model: "xai/grok-4.5"` + `XAI_API_KEY` / `extra.xai_api_key` |
-| `pi` | `pi` | `--mode json`; multi-turn; xAI: `extra.provider: "xai"`, `model: "grok-4.5"` |
-| `copilot` | `copilot` | GitHub Copilot CLI agent path when driveable |
+| `aider` | `aider` | chat-history multi-turn; set `model` for your backend |
+| `pi` | `pi` | `--mode json`; multi-turn; optional `provider` / `model` |
+| `copilot` | `copilot` | non-interactive path; resume from footer |
 
-### Infrastructure (not product “supported harnesses”)
+### Infrastructure
 
 | Id | Role |
 |----|------|
-| `mock` | In-process scenarios for unit tests / offline examples only |
+| `mock` | In-process scenarios for tests / offline examples |
 | `generic` | Escape hatch: arbitrary `opts.bin` |
-
-Harness-specific knobs go in `LaunchOptions.extra` / Rhai `#{ ... }` (e.g. `max_turns`, `tools`, `acp`, `scenario` for mock only).
 
 ```bash
 medon adapters
@@ -143,11 +134,9 @@ Script (Rhai) ──► Session ──► Adapter.prepare()
                  Transcript (text, tools, usage)
 ```
 
-**Non-goals:** reimplementing each harness TUI; LLM-as-judge scoring; remote cloud-only agents. Structured headless streams and ACP stdio are the fast path; PTY/TUI only as a last resort for a documented gap.
+**Non-goals:** reimplementing each harness TUI; LLM-as-judge scoring; remote cloud-only agents. Structured headless streams and ACP stdio are the fast path.
 
 ## CLI
-
-Installed binary: **`medon`** (crate `automedon-cli`).
 
 ```
 medon run <script.rhai> [--print]
@@ -164,26 +153,7 @@ make book         # handbook → book/ (needs mdbook)
 make book-serve   # local preview
 ```
 
-### CI, Pages, releases
-
-Workflows in `.github/workflows/`:
-
-- **ci** — fmt, clippy, test, coverage ≥96%, mdbook
-- **pages** — publish handbook to GitHub Pages on `main`
-- **release** — tag `v*` builds multi-platform `medon` assets
-
-See [docs/ci-and-releases.md](docs/ci-and-releases.md).
-
-### Publish the repo
-
-```bash
-# remote (repo: https://github.com/indynull/automedon)
-git remote add origin git@github.com:indynull/automedon.git
-git push -u origin main
-# Settings → Pages → Source: GitHub Actions
-# Optional: git tag v0.1.0 && git push origin v0.1.0
-```
-
+Workflows: continuous integration, Pages, release — see [docs/ci-and-releases.md](docs/ci-and-releases.md).
 
 ## License
 

@@ -5,25 +5,26 @@
 | Adapter id | `pi` |
 | Binary | `pi` |
 | Multi-turn | `--session-id` / `--continue` |
-| Live example | `examples/live/pi.rhai` |
+| Example | `examples/harnesses/pi.rhai` |
 
-## xAI path
+## Launch
 
 ```rust
 let s = launch("pi", #{
     yolo: true,
-    provider: "xai",
-    model: "grok-4.5",
     multi_turn: true,
     timeout_ms: 180_000
 });
 ```
 
-Optional: `extension` / `extensions` for Pi extension paths.
+Optional extras:
 
-## Live test
+| Key | Meaning |
+|-----|---------|
+| `provider` | Pi provider id for your account |
+| `model` | Model id string |
+| `extension` / `extensions` | Pi extension paths |
 
-```bash
-AUTOMEDON_LIVE_PI_XAI=1 cargo test -p automedon --test live_harness live_pi_xai_multi_turn -- --ignored --nocapture
-AUTOMEDON_LIVE_PI_XAI_TOOLS=1 cargo test -p automedon --test live_harness live_pi_xai_tools_and_hooks -- --ignored --nocapture
-```
+Tool lifecycle events map to `ToolCall` / hooks (`PreToolUse`, `PostToolUse`). See `examples/harnesses/pi_tools.rhai`.
+
+Requires `pi` on `PATH` and whatever provider credentials Pi expects for your setup.

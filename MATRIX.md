@@ -1,79 +1,68 @@
-# Adapter × capability matrix (1.0)
+# Adapter capability matrix
 
-Statuses (GOAL contract only): **done** · **unsupported** · **blocked-by-vendor**
+What each specialized driver **implements** in Automedon (prepare / parse / control),
+not a log of who had which login on which machine.
 
-Rule: if the harness supports multi-turn, the specialized adapter **must** implement multi-turn. Advertise `capabilities.*` only when **live-proven**.
+**Rule:** if the product supports multi-turn, the adapter must implement multi-turn.
 
-Live tests: `AUTOMEDON_LIVE_<ADAPTER>=1 cargo test -p automedon --test live_harness -- --ignored --nocapture`.
+| Value | Meaning |
+|-------|---------|
+| **yes** | Driver implements this surface |
+| **no** | Product or driver does not expose this path (call fails closed with a clear error) |
+| **optional** | Available when you set the launch extra (e.g. `acp: true`) |
 
-Evidence on implementer host (2026-08-06): inventory + probes under goal scratch; live logs for grok/pi/aider/copilot/acp.
+## Multi-turn mechanism
 
-## Multi-turn mechanism (by harness)
+| Adapter | Multi-turn mechanism | Sessions |
+|---------|----------------------|----------|
+| `grok` | `--resume <sessionId>`; ACP long-lived process | yes |
+| `pi` | `--session-id` / `--continue` | yes |
+| `aider` | `--chat-history-file` + `--restore-chat-history` | yes (history path) |
+| `copilot` | `--resume <id>` from Resume footer → SessionInfo | yes |
+| `claude` | `--resume` / `--continue` (stream-json) | yes |
+| `codex` | `exec resume <thread_id>` + `--json` | yes |
+| `opencode` | `--session` / `--continue` | yes |
+| `cursor` | `--resume` / `--continue` | yes |
+| `gemini` | `-r` / resume latest | yes |
 
-| Adapter | Multi-turn mechanism (driver) | Live-proven |
-|---------|-------------------------------|-------------|
-| `grok` | `--resume <sessionId>`; ACP long-lived process | **yes** (headless + ACP) |
-| `pi` | `--session-id` / `--continue` | **yes** (xAI multi-turn) |
-| `aider` | `--chat-history-file` + `--restore-chat-history` | **yes** (xAI multi-turn) |
-| `copilot` | `--resume <id>` from **stderr** Resume footer → SessionInfo; ACP prepare | **yes** (headless multi-turn; session id live) |
-| `claude` | `--resume` / `--continue` (stream-json) | **blocked-by-vendor** live; prepare+parse ready (system init → SessionInfo) |
-| `codex` | `exec resume <thread_id>` + `--json` | **blocked-by-vendor** live (401); prepare+parse ready (`thread.started`) |
-| `opencode` | `--session` / `--continue` | **blocked-by-vendor** live; prepare+parse ready (`step_start` sessionID) |
-| `cursor` | `--resume` / `--continue` (`agent`/`cursor-agent`) | **blocked-by-vendor** live; prepare+parse ready |
-| `gemini` | `-r` / resume latest | **blocked-by-vendor** live (IneligibleTier); prepare+parse ready |
+## Feature surface
 
-## Feature matrix (live)
-
-| Adapter | Launch | Multi-turn | Stream tools | Wait tools | Perm preflight | Sessions | ACP | Notes |
+| Adapter | Launch | Multi-turn | Stream tools | Wait hooks | Perm preflight | Sessions | ACP | Notes |
 |---------|--------|------------|--------------|------------|----------------|----------|-----|-------|
-| `grok` | **done** | **done** | **done** (ACP) | **done** (ACP) | **done** | **done** | **done** | Native xAI; interactive mid-flight permission/plan not live |
-| `pi` | **done** | **done** (xAI) | **done** (json stream) | **done** | **done** | **done** | unsupported | hooks: Pre/PostToolUse from tool lifecycle; `extra.extension` |
-| `aider` | **done** | **done** (xAI history) | unsupported | unsupported | **done** | **done** (history path) | unsupported | no agent tool stream on message path |
-| `copilot` | **done** | **done** | unsupported (not proven) | unsupported | **done** | **done** | prepare only | stderr Resume footer → SessionInfo → turn-2 `--resume`; ACP not live-proven |
-| `claude` | blocked-by-vendor | blocked-by-vendor | blocked-by-vendor | blocked-by-vendor | blocked-by-vendor | blocked-by-vendor | unsupported | live auth fail; driver: stream-json, resume/continue, SessionInfo/hooks/tools parse |
-| `codex` | blocked-by-vendor | blocked-by-vendor | blocked-by-vendor | blocked-by-vendor | blocked-by-vendor | blocked-by-vendor | blocked-by-vendor | live 401; driver: exec --json, resume, thread/item parse, ACP prepare |
-| `opencode` | blocked-by-vendor | blocked-by-vendor | blocked-by-vendor | blocked-by-vendor | blocked-by-vendor | blocked-by-vendor | blocked-by-vendor | live provider gap; driver: run --format json, session/continue, step_start parse, ACP |
-| `cursor` | blocked-by-vendor | blocked-by-vendor | blocked-by-vendor | blocked-by-vendor | unsupported | blocked-by-vendor | unsupported | live login required; driver: agent -p stream-json, resume/continue |
-| `gemini` | blocked-by-vendor | blocked-by-vendor | blocked-by-vendor | blocked-by-vendor | blocked-by-vendor | blocked-by-vendor | blocked-by-vendor | IneligibleTier; driver: -o stream-json, -r, agy preferred when present |
+| `grok` | yes | yes | yes (ACP path) | partial (ACP) | yes | yes | optional | Headless streaming-json; interactive mid-flight permission/plan not implemented |
+| `pi` | yes | yes | yes | yes | yes | yes | no | Tool lifecycle → Pre/PostToolUse; `provider` / `model` / `extension` extras |
+| `aider` | yes | yes | no | no | yes | yes | no | Message path has no agent tool stream |
+| `copilot` | yes | yes | no | no | yes | yes | optional | Resume footer → SessionInfo |
+| `claude` | yes | yes | yes | yes | yes | yes | no | stream-json; hooks/tools parse |
+| `codex` | yes | yes | yes | no | yes | yes | optional | `exec --json`; thread/item parse |
+| `opencode` | yes | yes | yes | no | yes | yes | optional | `run --format json` |
+| `cursor` | yes | yes | yes | no | yes | yes | no | agent stream-json |
+| `gemini` | yes | yes | yes | no | yes | yes | optional | Prefers `agy` when present |
 
-Interactive permission / plan / goals: **mock-proven**; live mid-flight control incomplete on product harnesses (honest **unsupported** until control channel proven).
+Interactive permission / plan / goals mid-flight: **mock** only unless listed above.
 
-**Hooks wait:** general API complete; **live** on Pi (tool lifecycle → PreToolUse/PostToolUse); partial on Grok ACP; mock full.
+## Operator requirements
 
-## Runtime capabilities (honest bits)
+Every product adapter needs:
 
-| Adapter | Advertised true only when live-proven |
-|---------|----------------------------------------|
-| `grok` | launch, multi_turn, stream_tools, sessions, acp, yolo/preflight |
-| `pi` | launch, multi_turn, stream_tools, wait_hooks, sessions, yolo/preflight |
-| `aider` | launch, multi_turn, sessions, yolo/preflight |
-| `copilot` | launch, multi_turn, sessions, yolo/preflight |
-| `claude` / `codex` / `opencode` / `cursor` / `gemini` | **all false** until live |
+1. That product’s CLI on `PATH` (or `bin` / `binary` override)
+2. That product’s normal authentication / provider configuration
 
-## xAI-friendly host path
-
-| Harness | How | Status |
-|---------|-----|--------|
-| Grok | native | **done** multi-turn + ACP tools |
-| Pi | `provider=xai` model `grok-4.5` | **done** multi-turn + tools/hooks |
-| Aider | `xai/grok-*` + key/bearer | **done** multi-turn |
-| OpenCode | connect xAI provider | not logged in / blocked |
+Optional knobs (`provider`, `model`, `acp`, …) are launch options — see each adapter page in the handbook.
 
 ## Infrastructure
 
 | Name | Role |
 |------|------|
-| `mock` | Unit tests only |
-| `generic` | Escape hatch |
+| `mock` | Unit tests and offline examples only |
+| `generic` | Escape hatch: arbitrary `opts.bin` |
 
-## Probe reasons (one-liners)
+## Live tests (developers)
 
-| Adapter | Reason |
-|---------|--------|
-| claude | authentication_failed — Not logged in · Please run /login |
-| codex | OpenAI API 401 Unauthorized (missing bearer) |
-| opencode | live probe timeout EXIT 124; no working provider session |
-| cursor | Authentication required — `agent login` or `CURSOR_API_KEY` |
-| gemini | IneligibleTierError — free tier / client no longer supported |
-| copilot | (not blocked) — live launch + multi-turn green |
-| grok / pi / aider | (not blocked) — live green under xAI |
+Optional ignored integration tests gate on env vars when you want to exercise a real binary:
+
+```bash
+AUTOMEDON_LIVE_GROK=1 cargo test -p automedon --test live_harness -- --ignored --nocapture
+```
+
+These are not product status cells. See `crates/automedon/tests/live_harness.rs`.

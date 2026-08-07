@@ -1,10 +1,11 @@
-// Live multi-turn: GitHub Copilot CLI.
-// Needs `copilot` on PATH + GitHub Copilot auth.
+// Multi-turn Grok Build (streaming-json + resume).
+// Requires: `grok` on PATH and product authentication.
 //
-//   medon run examples/live/copilot.rhai --print
+//   medon run examples/harnesses/grok.rhai --print
 
-let s = launch("copilot", #{
+let s = launch("grok", #{
     yolo: true,
+    multi_turn: true,
     timeout_ms: 180_000
 });
 
@@ -13,7 +14,7 @@ s.expect(timeout_ms(text("AUTOMEDON_T1"), 120_000));
 s.await_turn();
 print(`turn1 session=${s.session_id()}`);
 
-s.prompt("You previously said AUTOMEDON_T1. Reply with exactly: AUTOMEDON_T2 and nothing else");
+s.prompt("Reply with exactly: AUTOMEDON_T2 and nothing else");
 s.expect(timeout_ms(text("AUTOMEDON_T2"), 120_000));
 print(`done session=${s.session_id()} text=${s.text()}`);
 s.close();

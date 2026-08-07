@@ -1,8 +1,7 @@
 //! OpenAI Codex CLI specialized driver.
 //!
 //! `codex exec --json` NDJSON; multi-turn via `codex exec resume <thread_id>`.
-//! Parse covers auth-fail frames (`thread.started`, `error`) so prepare/resume
-//! paths are ready when credentials exist. Capabilities stay false until live.
+//! Optional ACP prepare via `extra.acp`.
 
 use serde_json::Value;
 
@@ -23,8 +22,19 @@ impl Adapter for CodexAdapter {
     }
 
     fn capabilities(&self) -> Capabilities {
-        // blocked-by-vendor (401) until live multi-turn green.
-        Capabilities::default()
+        Capabilities {
+            launch: true,
+            multi_turn: true,
+            stream_tools: true,
+            sessions: true,
+            streaming_json: true,
+            yolo: true,
+            permissions_preflight: true,
+            acp: true,
+            permissions: false,
+            permissions_interactive: false,
+            ..Default::default()
+        }
     }
 
     fn prepare(

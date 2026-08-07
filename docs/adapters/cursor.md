@@ -3,19 +3,14 @@
 | | |
 |--|--|
 | Adapter id | `cursor` |
-| Binary | `agent` / `cursor-agent` / `cursor agent` |
-| Multi-turn | `--resume` / `--continue` |
-| Live example | `examples/live/cursor.rhai` |
-| Live status | Needs `agent login` or `CURSOR_API_KEY` |
+| Binary | `agent`, `cursor-agent`, or `cursor` |
+| Multi-turn | `--resume` / `--continue`, stream-json |
+| Example | `examples/harnesses/cursor.rhai` |
 
 ## Launch
 
 ```rust
-let s = launch("cursor", #{ yolo: true, timeout_ms: 180_000 });
+let s = launch("cursor", #{ yolo: true, multi_turn: true, timeout_ms: 180_000 });
 ```
 
-## Live test
-
-```bash
-AUTOMEDON_LIVE_CURSOR=1 cargo test -p automedon --test live_harness live_cursor_launch -- --ignored --nocapture
-```
+Override binary with `binary: "…"` when needed. Requires Cursor agent authentication.

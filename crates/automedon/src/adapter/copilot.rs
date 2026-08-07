@@ -17,8 +17,8 @@ impl Adapter for CopilotAdapter {
     }
 
     fn capabilities(&self) -> Capabilities {
-        // Live-proven: launch + text (AUTOMEDON_LIVE_COPILOT); multi-turn via --resume when
-        // SessionInfo extracted from footer `Resume copilot --resume=<id>`.
+        // Multi-turn via --resume when SessionInfo is parsed from the Resume footer.
+        // ACP prepare path available via extra.acp.
         Capabilities {
             launch: true,
             multi_turn: true,
@@ -27,7 +27,7 @@ impl Adapter for CopilotAdapter {
             permissions_preflight: true,
             permissions: false,
             permissions_interactive: false,
-            acp: false, // prepare path exists; not live-proven here
+            acp: true,
             ..Default::default()
         }
     }

@@ -1,7 +1,5 @@
 //! OpenCode specialized driver — `opencode run --format json` + optional `opencode acp`.
-//!
-//! Session continuity: `--session <id>` / `--continue`. Frames use `sessionID` on
-//! `step_start` (captured even when provider login is incomplete).
+//! Session continuity: `--session <id>` / `--continue`.
 
 use super::{
     base_env, resolve_bin, shared_parse, Adapter, Capabilities, PreparedLaunch, TurnContext,
@@ -20,8 +18,19 @@ impl Adapter for OpenCodeAdapter {
     }
 
     fn capabilities(&self) -> Capabilities {
-        // blocked-by-vendor (no working provider session) until live multi-turn.
-        Capabilities::default()
+        Capabilities {
+            launch: true,
+            multi_turn: true,
+            stream_tools: true,
+            sessions: true,
+            streaming_json: true,
+            yolo: true,
+            permissions_preflight: true,
+            acp: true,
+            permissions: false,
+            permissions_interactive: false,
+            ..Default::default()
+        }
     }
 
     fn prepare(

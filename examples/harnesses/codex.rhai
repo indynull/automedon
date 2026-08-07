@@ -1,12 +1,10 @@
-// Live multi-turn: Pi with xAI / Grok model.
-// Needs `pi` on PATH + xAI credentials configured for pi (`provider=xai`).
+// Multi-turn OpenAI Codex (`codex exec --json` + resume).
+// Requires: `codex` on PATH and OpenAI/Codex authentication.
 //
-//   medon run examples/live/pi.rhai --print
+//   medon run examples/harnesses/codex.rhai --print
 
-let s = launch("pi", #{
+let s = launch("codex", #{
     yolo: true,
-    provider: "xai",
-    model: "grok-4.5",
     multi_turn: true,
     timeout_ms: 180_000
 });

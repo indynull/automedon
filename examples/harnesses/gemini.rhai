@@ -1,9 +1,9 @@
-// Live multi-turn: Grok Build (native xAI).
-// Needs `grok` on PATH + grok auth.
+// Multi-turn Gemini CLI (stream-json + resume). Prefers `agy` when on PATH.
+// Requires: `gemini` or `agy` on PATH and Gemini/Google authentication.
 //
-//   medon run examples/live/grok.rhai --print
+//   medon run examples/harnesses/gemini.rhai --print
 
-let s = launch("grok", #{
+let s = launch("gemini", #{
     yolo: true,
     multi_turn: true,
     timeout_ms: 180_000

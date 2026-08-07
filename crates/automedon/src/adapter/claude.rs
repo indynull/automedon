@@ -1,8 +1,5 @@
 //! Claude Code adapter — headless `claude -p` with stream-json.
-//!
-//! Prepare/parse are best-effort from the live binary’s stream-json shapes (including
-//! auth-fail frames that still emit `system` init + `session_id`). Capabilities stay
-//! false until multi-turn is live-proven on a logged-in host.
+//! Multi-turn via `--resume` / `--continue`. Parses system init, tools, and hooks.
 
 use serde_json::Value;
 
@@ -23,8 +20,21 @@ impl Adapter for ClaudeAdapter {
     }
 
     fn capabilities(&self) -> Capabilities {
-        // blocked-by-vendor (not logged in) — advertise nothing until live multi-turn.
-        Capabilities::default()
+        Capabilities {
+            launch: true,
+            multi_turn: true,
+            stream_tools: true,
+            wait_hooks: true,
+            hooks: true,
+            sessions: true,
+            streaming_json: true,
+            yolo: true,
+            permissions_preflight: true,
+            tool_filter: true,
+            permissions: false,
+            permissions_interactive: false,
+            ..Default::default()
+        }
     }
 
     fn prepare(

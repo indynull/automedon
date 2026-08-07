@@ -1,10 +1,11 @@
-// Live multi-turn: Cursor agent CLI (`agent` / `cursor-agent`).
-// Needs binary on PATH + `agent login` or CURSOR_API_KEY.
+// Multi-turn OpenCode (`run --format json` + session/continue).
+// Requires: `opencode` on PATH and a configured provider.
 //
-//   medon run examples/live/cursor.rhai --print
+//   medon run examples/harnesses/opencode.rhai --print
 
-let s = launch("cursor", #{
+let s = launch("opencode", #{
     yolo: true,
+    multi_turn: true,
     timeout_ms: 180_000
 });
 

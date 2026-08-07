@@ -5,24 +5,18 @@
 | Adapter id | `aider` |
 | Binary | `aider` |
 | Multi-turn | `--chat-history-file` + `--restore-chat-history` |
-| Live example | `examples/live/aider.rhai` |
+| Example | `examples/harnesses/aider.rhai` |
 
 ## Launch
 
 ```rust
 let s = launch("aider", #{
-    model: "xai/grok-4.5",
+    model: "your-provider/model-id",
     no_git: true,
     timeout_ms: 180_000
 });
 ```
 
-Optional: `chat_history_file` for a fixed history path.
+Optional: `chat_history_file` for a fixed history path. Set `model` (and any env vars that Aider needs for that model).
 
-No agent tool stream on the message path (unsupported for tool waits).
-
-## Live test
-
-```bash
-AUTOMEDON_LIVE_AIDER_XAI=1 cargo test -p automedon --test live_harness live_aider_xai_multi_turn -- --ignored --nocapture
-```
+The non-interactive `--message` path does not expose an agent tool stream; tool waits are not available on this adapter.

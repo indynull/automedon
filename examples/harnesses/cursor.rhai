@@ -1,10 +1,11 @@
-// Live multi-turn: Claude Code.
-// Needs `claude` on PATH + `claude` login / Anthropic credentials.
+// Multi-turn Cursor agent CLI (stream-json + resume/continue).
+// Requires: `agent` / `cursor-agent` / `cursor` on PATH and Cursor authentication.
 //
-//   medon run examples/live/claude.rhai --print
+//   medon run examples/harnesses/cursor.rhai --print
 
-let s = launch("claude", #{
+let s = launch("cursor", #{
     yolo: true,
+    multi_turn: true,
     timeout_ms: 180_000
 });
 

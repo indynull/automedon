@@ -1,9 +1,8 @@
-// Live multi-turn Grok demo: implement a tiny Python module, then tests.
-// Needs `grok` on PATH + auth.
-//
-//   medon run examples/grok_hello.rhai --print
-//
+// Multi-turn Grok: implement a tiny Python module, then tests.
+// Requires: `grok` on PATH and product authentication.
 // Writes under examples/automedon_demo/ (gitignored).
+//
+//   medon run examples/harnesses/grok_coding.rhai --print
 
 let s = launch("grok", #{
     yolo: true,
@@ -12,7 +11,6 @@ let s = launch("grok", #{
     timeout_ms: 300_000
 });
 
-// --- turn 1: implement fib ---
 s.prompt(`You are working in this Automedon repo.
 
 Create a tiny Python module (stdlib only):
@@ -29,7 +27,6 @@ s.expect(timeout_ms(text("DONE:fib"), 240_000));
 s.await_turn();
 print(`turn1 ok session=${s.session_id()} tools=${s.tool_names()}`);
 
-// --- turn 2: tests + run (resume same Grok session) ---
 s.prompt(`Continue in the same session.
 
 Add examples/automedon_demo/test_fib.py that:
@@ -46,12 +43,10 @@ s.await_turn();
 let t = s.text();
 print(`turn2 ok turns=${s.turn()}`);
 print("--- transcript tail ---");
-// keep print short: last chunk is enough signal
 print(t);
 
 assert_true(s.turn() >= 2);
 assert_contains(t, "DONE:fib");
-// PASS preferred; if model only wrote tests without running, still require turn2 work
 assert_true(t.contains("PASS") || t.contains("fib(10)") || t.contains("test_fib"));
 
 s.close();

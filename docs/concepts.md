@@ -37,7 +37,7 @@ Both match predicates on the event stream. Prefer waits for tools/hooks; expect 
 
 ## Capabilities
 
-Product adapters advertise only **live-proven** features. Calling `approve` / `approve_plan` without the interactive bit fails with a clear error.
+Product adapters advertise features the driver implements. Calling `approve` / `approve_plan` without the interactive bit fails with a clear error.
 
 List current bits:
 

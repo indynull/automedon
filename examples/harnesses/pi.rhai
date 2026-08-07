@@ -1,11 +1,12 @@
-// Live multi-turn: Aider via chat-history restore.
-// Needs `aider` on PATH + model credentials (default xai/grok-4.5 + XAI_API_KEY).
+// Multi-turn Pi (`--mode json`, session id / continue).
+// Requires: `pi` on PATH and Pi provider credentials for your account.
+// Optional launch extras: provider, model, extension / extensions.
 //
-//   medon run examples/live/aider.rhai --print
+//   medon run examples/harnesses/pi.rhai --print
 
-let s = launch("aider", #{
-    model: "xai/grok-4.5",
-    no_git: true,
+let s = launch("pi", #{
+    yolo: true,
+    multi_turn: true,
     timeout_ms: 180_000
 });
 

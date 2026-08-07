@@ -1,8 +1,9 @@
-//! Honest capability bits — advertise only what is proven for that adapter.
+//! Capability bits: features this adapter's driver implements (prepare/parse/control).
+//! False means Automedon does not implement the control path — not "author lacked a key".
 
 use serde::{Deserialize, Serialize};
 
-/// Per-adapter feature flags (GOAL.md bitset).
+/// Per-adapter feature flags.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Capabilities {
     pub launch: bool,
@@ -29,7 +30,8 @@ pub struct Capabilities {
 }
 
 impl Capabilities {
-    /// Baseline for offline mock-like product shaping tests — not for live product adapters.
+    /// Headless product baseline: launch, multi-turn sessions, stream JSON, preflight yolo.
+    /// No interactive mid-flight permission/plan unless the adapter implements encode.
     pub fn product_headless() -> Self {
         Self {
             launch: true,
@@ -40,7 +42,6 @@ impl Capabilities {
             yolo: true,
             tool_filter: true,
             permissions_preflight: true,
-            // Do not imply interactive mid-flight control.
             permissions: false,
             permissions_interactive: false,
             ..Default::default()

@@ -20,7 +20,7 @@ medon --help
 medon adapters
 ```
 
-`medon adapters` lists product harnesses and which capability bits are currently advertised (live-proven only for product adapters).
+`medon adapters` lists harnesses and which capability bits each driver advertises.
 
 ## First green runs
 
@@ -32,12 +32,12 @@ medon run examples/mock/multi_turn.rhai --print
 medon shot mock "hello" --scenario echo
 ```
 
-### Live product harnesses (CLI + auth)
+### Product harnesses (CLI + auth)
 
 ```bash
-medon run examples/smoke.rhai --print          # grok
-medon run examples/multi_turn.rhai --print     # grok multi-turn
-medon run examples/wait_hooks.rhai --print     # pi + xAI (tools/hooks)
+medon run examples/harnesses/grok.rhai --print
+medon run examples/harnesses/pi.rhai --print
+# see examples/harnesses/README.md
 ```
 
 ## Develop in-tree without installing
@@ -49,12 +49,12 @@ cargo run -p automedon-cli -- run examples/mock/smoke.rhai --print
 ## Project checks
 
 ```bash
-make check   # fmt, clippy -D warnings, tests, line coverage ≥ 96% on crate automedon
-make book    # build this handbook (needs mdbook)
+make check   # fmt, clippy -D warnings, tests, line coverage on crate automedon
+make book    # handbook (needs mdbook)
 ```
 
 ## Next
 
-- [First script](first-script.md) — write a multi-turn Rhai script  
-- [CLI](cli.md) — `run`, `eval`, `shot`, `adapters`  
-- [Live harnesses](live.md) — Grok, Pi, Aider, Copilot, …  
+- [First script](first-script.md)  
+- [CLI](cli.md)  
+- [Live harnesses](live.md) / [Adapters](adapters/index.md)  

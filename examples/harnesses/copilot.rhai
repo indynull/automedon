@@ -1,10 +1,9 @@
-// Live multi-turn: Gemini CLI (or Antigravity via `agy` when installed).
-// Needs `gemini` or `agy` on PATH + eligible Google auth.
-// Note: free-tier Gemini Code Assist may return IneligibleTierError.
+// Multi-turn GitHub Copilot CLI (resume from stream footer when present).
+// Requires: `copilot` on PATH and GitHub Copilot authentication.
 //
-//   medon run examples/live/gemini.rhai --print
+//   medon run examples/harnesses/copilot.rhai --print
 
-let s = launch("gemini", #{
+let s = launch("copilot", #{
     yolo: true,
     timeout_ms: 180_000
 });

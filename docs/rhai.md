@@ -11,11 +11,8 @@ let s = launch("grok", #{
     yolo: true,
     model: "optional-model-id",
     multi_turn: true,
-    timeout_ms: 120_000,
-    // product extras:
-    // provider: "xai",   // pi
-    // acp: true,         // grok ACP
-    // chat_history_file: "/tmp/hist.md",  // aider
+    timeout_ms: 120_000
+    // product extras as needed: provider, acp, chat_history_file, …
 });
 ```
 
@@ -63,13 +60,9 @@ timeout_ms(wait_text("x"), 60_000)
 
 ## Examples
 
-| File | Harness | Teaches |
-|------|---------|---------|
-| `examples/smoke.rhai` | `grok` | launch, expect text |
-| `examples/multi_turn.rhai` | `grok` | multi-turn resume |
-| `examples/wait_hooks.rhai` | `pi` | wait on hooks + tools |
-| `examples/grok_hello.rhai` | `grok` | multi-turn coding task |
-| `examples/mock/*` | `mock` | offline DSL (CI) |
-| `examples/live/*` | product | per-adapter multi-turn |
+| Path | Role |
+|------|------|
+| `examples/mock/*` | Offline mock (CI + learning) |
+| `examples/harnesses/*` | Product adapters |
 
-See [Live harnesses](live.md).
+See [live.md](live.md) and `examples/README.md`.

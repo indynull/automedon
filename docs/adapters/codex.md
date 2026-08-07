@@ -1,23 +1,16 @@
-# OpenAI Codex CLI
+# OpenAI Codex
 
 | | |
 |--|--|
 | Adapter id | `codex` |
 | Binary | `codex` |
-| Multi-turn | `exec resume <id>` + `--json` |
-| Live example | `examples/live/codex.rhai` |
-| Live status | Needs OpenAI / Codex auth |
+| Multi-turn | `codex exec resume <thread_id>` + `--json` |
+| Example | `examples/harnesses/codex.rhai` |
 
 ## Launch
 
 ```rust
-let s = launch("codex", #{ yolo: true, timeout_ms: 180_000 });
+let s = launch("codex", #{ yolo: true, multi_turn: true, timeout_ms: 180_000 });
 ```
 
-Optional ACP prepare: `acp: true`.
-
-## Live test
-
-```bash
-AUTOMEDON_LIVE_CODEX=1 cargo test -p automedon --test live_harness live_codex_launch -- --ignored --nocapture
-```
+Optional ACP prepare: `acp: true`. Requires OpenAI / Codex authentication.

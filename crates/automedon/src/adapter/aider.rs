@@ -21,7 +21,7 @@ impl Adapter for AiderAdapter {
     }
 
     fn capabilities(&self) -> Capabilities {
-        // Live-proven with xAI: launch, multi-turn (history restore), preflight yolo.
+        // Multi-turn via chat-history file restore (no agent tool stream on message path).
         Capabilities {
             launch: true,
             multi_turn: true,

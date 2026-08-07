@@ -20,6 +20,6 @@ It does not reimplement agents and is not an LLM-as-judge scorer. It spawns the 
 1. [Getting started](getting-started.md) — install and first green run  
 2. [First script](first-script.md) — multi-turn with the mock harness  
 3. [Live harnesses](live.md) — real CLIs  
-4. [Adapters](adapters/index.md) — per-product flags and status  
+4. [Adapters](adapters/index.md) — per-product flags and launch options  
 
-Contract and live status: [goal.md](goal.md), [matrix.md](matrix.md).
+Capability surface: [matrix.md](matrix.md). Product goal: [goal.md](goal.md).

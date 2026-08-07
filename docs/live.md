@@ -1,52 +1,31 @@
-# Live harnesses
+# Product harness examples
 
-Live runs need:
+Product scripts live under `examples/harnesses/`. Each needs:
 
 1. Product CLI on `PATH`
-2. Vendor authentication / API access
-3. A script under `examples/` / `examples/live/` or your own
+2. That product’s authentication
+3. The matching script (or your own)
 
-## Primary examples (repo root)
-
-| Script | Adapter | Notes |
-|--------|---------|-------|
-| `examples/smoke.rhai` | `grok` | one-turn text marker |
-| `examples/multi_turn.rhai` | `grok` | headless multi-turn |
-| `examples/wait_hooks.rhai` | `pi` | tools + Pre/PostToolUse waits |
-| `examples/grok_hello.rhai` | `grok` | multi-turn coding task |
-
-## Per-adapter catalog (`examples/live/`)
+## Catalog
 
 | Script | Adapter | Notes |
 |--------|---------|-------|
-| `examples/live/grok.rhai` | `grok` | Headless multi-turn |
-| `examples/live/grok_acp.rhai` | `grok` | `acp: true` |
-| `examples/live/pi.rhai` | `pi` | `provider=xai`, model `grok-4.5` |
-| `examples/live/aider.rhai` | `aider` | history multi-turn, `xai/grok-4.5` |
-| `examples/live/copilot.rhai` | `copilot` | resume from footer |
-| `examples/live/claude.rhai` | `claude` | needs Claude login |
-| `examples/live/codex.rhai` | `codex` | needs OpenAI auth |
-| `examples/live/opencode.rhai` | `opencode` | needs provider login |
-| `examples/live/cursor.rhai` | `cursor` | needs agent login / key |
-| `examples/live/gemini.rhai` | `gemini` | may hit IneligibleTier |
+| `examples/harnesses/grok_smoke.rhai` | `grok` | one-turn |
+| `examples/harnesses/grok.rhai` | `grok` | multi-turn |
+| `examples/harnesses/grok_acp.rhai` | `grok` | `acp: true` |
+| `examples/harnesses/grok_coding.rhai` | `grok` | coding task |
+| `examples/harnesses/pi.rhai` | `pi` | multi-turn |
+| `examples/harnesses/pi_tools.rhai` | `pi` | tools + hooks |
+| `examples/harnesses/aider.rhai` | `aider` | history multi-turn |
+| `examples/harnesses/copilot.rhai` | `copilot` | resume footer |
+| `examples/harnesses/claude.rhai` | `claude` | stream-json |
+| `examples/harnesses/codex.rhai` | `codex` | exec json |
+| `examples/harnesses/opencode.rhai` | `opencode` | session continue |
+| `examples/harnesses/cursor.rhai` | `cursor` | agent CLI |
+| `examples/harnesses/gemini.rhai` | `gemini` | stream-json |
 
 ```bash
-medon run examples/smoke.rhai --print
-medon run examples/live/grok.rhai --print
+medon run examples/harnesses/grok.rhai --print
 ```
 
-Details and launch extras: [Adapters](adapters/index.md).
-
-## Library live tests
-
-Env-gated integration tests (not run in default CI):
-
-```bash
-AUTOMEDON_LIVE_GROK=1 cargo test -p automedon --test live_harness live_grok_multi_turn -- --ignored --nocapture
-```
-
-Gates include `AUTOMEDON_LIVE_PI_XAI`, `AUTOMEDON_LIVE_AIDER_XAI`, `AUTOMEDON_LIVE_COPILOT`, `AUTOMEDON_LIVE_GROK_ACP`, `AUTOMEDON_LIVE_CLAUDE`, etc.
-
-## Status
-
-What is live-proven on a given machine: [matrix.md](matrix.md). Capability bits stay false until proven.
+Offline mock: `examples/mock/`. Details: [Adapters](adapters/index.md), [matrix.md](matrix.md).

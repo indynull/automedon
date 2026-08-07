@@ -713,8 +713,8 @@ fn pi_parse_and_prepare() {
 #[test]
 fn claude_and_generic_adapters() {
     let c = ClaudeAdapter;
-    // Capabilities stay false until live-proven (binary absent here).
-    assert!(!c.capabilities().streaming_json);
+    assert!(c.capabilities().streaming_json);
+    assert!(c.capabilities().multi_turn);
     assert!(c.parse_line("").is_empty());
     assert!(matches!(&c.parse_line("nope")[0], Event::Raw { .. }));
     assert!(matches!(

@@ -1,14 +1,34 @@
 # First script
 
-Prefer a **product** harness. Examples under `examples/` use Grok or Pi. For offline-only learning of the DSL, use `examples/mock/`.
+Start offline with **mock**, then point `launch` at a product id.
 
-## Multi-turn continuity (Grok)
-
-Needs `grok` on `PATH` and grok auth.
+## Offline multi-turn (mock)
 
 ```rust
-// examples/multi_turn.rhai (simplified)
+// examples/mock/multi_turn.rhai (simplified)
 
+let s = launch("mock", #{ scenario: "multi", timeout_ms: 10_000 });
+
+s.prompt("alpha");
+s.expect(text("T1:alpha"));
+s.await_turn();
+
+s.prompt("beta");
+s.expect(text("prior=T1:alpha"));
+s.await_turn();
+
+s.close();
+```
+
+```bash
+medon run examples/mock/multi_turn.rhai --print
+```
+
+## Product multi-turn (Grok)
+
+Needs `grok` on `PATH` and Grok authentication.
+
+```rust
 let s = launch("grok", #{
     yolo: true,
     multi_turn: true,
@@ -26,10 +46,8 @@ s.await_turn();
 s.close();
 ```
 
-Run:
-
 ```bash
-medon run examples/multi_turn.rhai --print
+medon run examples/harnesses/grok.rhai --print
 ```
 
 ## Pattern
@@ -37,42 +55,18 @@ medon run examples/multi_turn.rhai --print
 | Step | Purpose |
 |------|---------|
 | `launch(name, opts)` | Start a session for one adapter |
-| `prompt(...)` | User turn (increments turn; may spawn a process) |
+| `prompt(...)` | User turn |
 | `expect` / `wait` | Block until a stream condition matches |
 | `await_turn()` | Drain until the current turn ends |
-| `close()` | Tear down the session |
+| `close()` | Tear down |
 
-## Waits on tools and hooks (Pi)
+## Waits on tools and hooks
 
-Needs `pi` on `PATH` and xAI credentials for Pi.
-
-```bash
-medon run examples/wait_hooks.rhai --print
-```
-
-```rust
-let s = launch("pi", #{
-    yolo: true,
-    provider: "xai",
-    model: "grok-4.5",
-    timeout_ms: 180_000
-});
-s.prompt("Run a shell tool once: echo hi. End with DONE.");
-s.wait(timeout_ms(wait_hook_started("PreToolUse"), 120_000));
-s.wait(timeout_ms(wait_tool_any(), 120_000));
-s.wait(timeout_ms(wait_text("DONE"), 120_000));
-s.close();
-```
-
-## Offline mock
-
-```bash
-medon run examples/mock/multi_turn.rhai --print
-medon run examples/mock/wait_hooks.rhai --print
-```
+Offline: `examples/mock/wait_hooks.rhai`.  
+Product (Pi): `examples/harnesses/pi_tools.rhai`.
 
 ## Next
 
-- [Concepts](concepts.md) — events, turn end vs session end, capabilities  
-- [Rhai scripting](rhai.md) — full surface  
-- [Live harnesses](live.md) — every product adapter under `examples/live/`  
+- [Concepts](concepts.md)  
+- [Rhai scripting](rhai.md)  
+- [Adapters](adapters/index.md)  

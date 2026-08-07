@@ -1,10 +1,11 @@
-// Live multi-turn: OpenAI Codex CLI.
-// Needs `codex` on PATH + OpenAI / Codex auth.
+// Multi-turn Grok via ACP (`grok agent stdio`).
+// Requires: `grok` on PATH and product authentication.
 //
-//   medon run examples/live/codex.rhai --print
+//   medon run examples/harnesses/grok_acp.rhai --print
 
-let s = launch("codex", #{
+let s = launch("grok", #{
     yolo: true,
+    acp: true,
     timeout_ms: 180_000
 });
 

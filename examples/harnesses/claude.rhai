@@ -1,11 +1,11 @@
-// Live multi-turn via Grok ACP (`grok agent stdio`).
-// Needs `grok` on PATH + grok auth.
+// Multi-turn Claude Code (stream-json + resume/continue).
+// Requires: `claude` on PATH and Claude/Anthropic authentication.
 //
-//   medon run examples/live/grok_acp.rhai --print
+//   medon run examples/harnesses/claude.rhai --print
 
-let s = launch("grok", #{
+let s = launch("claude", #{
     yolo: true,
-    acp: true,
+    multi_turn: true,
     timeout_ms: 180_000
 });
 
