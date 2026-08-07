@@ -525,23 +525,23 @@ fn grok_parse_all_shapes() {
         &a.parse_line(r#"{"type":"thinking","data":""}"#)[..],
         []
     ));
-    assert!(matches!(
-        &a.parse_line(r#"{"type":"tool_call","id":"1","name":"n","input":{}}"#)[0],
-        Event::ToolCall { .. }
-    ));
-    assert!(matches!(
-        &a.parse_line(r#"{"type":"tool_use","toolCallId":"1","tool":"n","arguments":{"a":1}}"#)[0],
-        Event::ToolCall { .. }
-    ));
-    assert!(matches!(
-        &a.parse_line(r#"{"type":"tool_result","id":"1","name":"n","output":"o"}"#)[0],
-        Event::ToolResult { .. }
-    ));
-    assert!(matches!(
-        &a.parse_line(r#"{"type":"tool_result","toolCallId":"1","data":{"x":1},"isError":true}"#)
-            [0],
-        Event::ToolResult { is_error: true, .. }
-    ));
+    let tc = a.parse_line(r#"{"type":"tool_call","id":"1","name":"n","input":{}}"#);
+    assert!(tc
+        .iter()
+        .any(|e| matches!(e, Event::HookStarted { name, .. } if name == "PreToolUse")));
+    assert!(tc.iter().any(|e| matches!(e, Event::ToolCall { .. })));
+    let tu = a.parse_line(r#"{"type":"tool_use","toolCallId":"1","tool":"n","arguments":{"a":1}}"#);
+    assert!(tu.iter().any(|e| matches!(e, Event::ToolCall { .. })));
+    let tr = a.parse_line(r#"{"type":"tool_result","id":"1","name":"n","output":"o"}"#);
+    assert!(tr.iter().any(|e| matches!(e, Event::ToolResult { .. })));
+    assert!(tr
+        .iter()
+        .any(|e| matches!(e, Event::HookFinished { name, .. } if name == "PostToolUse")));
+    let tr_err =
+        a.parse_line(r#"{"type":"tool_result","toolCallId":"1","data":{"x":1},"isError":true}"#);
+    assert!(tr_err
+        .iter()
+        .any(|e| matches!(e, Event::ToolResult { is_error: true, .. })));
     assert!(matches!(
         &a.parse_line(r#"{"type":"usage","usage":{"input_tokens":1,"output_tokens":2,"total_tokens":3},"total_cost_usd":0.01}"#)[0],
         Event::Usage { .. }

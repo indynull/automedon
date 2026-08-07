@@ -18,11 +18,14 @@ impl Adapter for GrokAdapter {
 
     fn capabilities(&self) -> Capabilities {
         // Headless streaming-json multi-turn + resume; ACP via `grok agent stdio`.
+        // Tool lifecycle maps to Tool* + Hook* (Pre/PostToolUse), same general asserts as Pi.
         // No interactive mid-flight permission/plan encode on this path.
         Capabilities {
             launch: true,
             multi_turn: true,
             stream_tools: true,
+            wait_hooks: true,
+            hooks: true,
             sessions: true,
             streaming_json: true,
             yolo: true,
@@ -224,7 +227,16 @@ impl Adapter for GrokAdapter {
                     .or_else(|| value.get("arguments"))
                     .cloned()
                     .unwrap_or(Value::Null);
-                vec![Event::ToolCall { id, name, input }]
+                // Same general lifecycle as Pi/Claude: PreToolUse then ToolCall.
+                vec![
+                    Event::HookStarted {
+                        id: id.clone(),
+                        name: "PreToolUse".into(),
+                        phase: Some(ty.to_string()),
+                        detail: Some(serde_json::json!({ "tool": name, "input": input })),
+                    },
+                    Event::ToolCall { id, name, input },
+                ]
             }
             "tool_call_update" => {
                 // Completed tool updates carry stdout in content / rawOutput.
@@ -264,12 +276,25 @@ impl Adapter for GrokAdapter {
                     })
                     .unwrap_or_default();
                 let is_error = status == "failed" || status == "error";
-                vec![Event::ToolResult {
-                    id,
-                    name,
-                    output,
-                    is_error,
-                }]
+                vec![
+                    Event::ToolResult {
+                        id: id.clone(),
+                        name: name.clone(),
+                        output: output.clone(),
+                        is_error,
+                    },
+                    Event::HookFinished {
+                        id,
+                        name: "PostToolUse".into(),
+                        phase: Some("tool_call_update".into()),
+                        ok: !is_error,
+                        detail: Some(if name.is_empty() {
+                            output
+                        } else {
+                            format!("{name}: {output}")
+                        }),
+                    },
+                ]
             }
             "tool_result" => {
                 let id = value
@@ -297,12 +322,25 @@ impl Adapter for GrokAdapter {
                     .or_else(|| value.get("isError"))
                     .and_then(|v| v.as_bool())
                     .unwrap_or(false);
-                vec![Event::ToolResult {
-                    id,
-                    name,
-                    output,
-                    is_error,
-                }]
+                vec![
+                    Event::ToolResult {
+                        id: id.clone(),
+                        name: name.clone(),
+                        output: output.clone(),
+                        is_error,
+                    },
+                    Event::HookFinished {
+                        id,
+                        name: "PostToolUse".into(),
+                        phase: Some("tool_result".into()),
+                        ok: !is_error,
+                        detail: Some(if name.is_empty() {
+                            output
+                        } else {
+                            format!("{name}: {output}")
+                        }),
+                    },
+                ]
             }
             "usage" => {
                 let u = value.get("usage").unwrap_or(value);

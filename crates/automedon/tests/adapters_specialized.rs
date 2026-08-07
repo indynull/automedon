@@ -317,17 +317,20 @@ fn grok_acp_prepare() {
 #[test]
 fn grok_parse_live_tool_name_and_result() {
     let a = GrokAdapter;
+    assert!(a.capabilities().wait_hooks);
+    assert!(a.capabilities().hooks);
     // Live Grok streaming-json: toolName + rawInput (not name/input).
     let start = a.parse_line(
         r#"{"type":"tool_call","toolCallId":"c1","title":"run_terminal_command","toolName":"run_terminal_command","rawInput":{"command":"echo hi"},"status":"pending"}"#,
     );
-    assert!(
-        matches!(start.first(), Some(Event::ToolCall { name, .. }) if name == "run_terminal_command")
-    );
-    assert!(matches!(
-        start.first(),
-        Some(Event::ToolCall { input, .. }) if input.get("command").and_then(|v| v.as_str()) == Some("echo hi")
-    ));
+    assert!(start
+        .iter()
+        .any(|e| matches!(e, Event::HookStarted { name, .. } if name == "PreToolUse")));
+    assert!(start
+        .iter()
+        .any(|e| matches!(e, Event::ToolCall { name, input, .. }
+            if name == "run_terminal_command"
+                && input.get("command").and_then(|v| v.as_str()) == Some("echo hi"))));
     let mid = a.parse_line(
         r#"{"type":"tool_call_update","toolCallId":"c1","status":"in_progress","content":[]}"#,
     );
@@ -335,9 +338,27 @@ fn grok_parse_live_tool_name_and_result() {
     let done = a.parse_line(
         r#"{"type":"tool_call_update","toolCallId":"c1","status":"completed","content":[{"type":"content","content":{"type":"text","text":"hi\n"}}]}"#,
     );
-    assert!(matches!(
-        done.first(),
-        Some(Event::ToolResult { output, is_error: false, .. }) if output.contains("hi")
+    assert!(done.iter().any(
+        |e| matches!(e, Event::ToolResult { output, is_error: false, .. } if output.contains("hi"))
+    ));
+    assert!(done
+        .iter()
+        .any(|e| matches!(e, Event::HookFinished { name, ok: true, .. } if name == "PostToolUse")));
+    let failed = a.parse_line(
+        r#"{"type":"tool_call_update","toolCallId":"c1","status":"failed","content":[{"type":"content","content":{"type":"text","text":"boom"}}]}"#,
+    );
+    assert!(failed
+        .iter()
+        .any(|e| matches!(e, Event::ToolResult { is_error: true, .. })));
+    assert!(failed.iter().any(
+        |e| matches!(e, Event::HookFinished { name, ok: false, .. } if name == "PostToolUse")
+    ));
+    let legacy = a.parse_line(
+        r#"{"type":"tool_result","id":"c2","name":"bash","output":"ok","is_error":false}"#,
+    );
+    assert!(legacy.iter().any(|e| matches!(e, Event::ToolResult { .. })));
+    assert!(legacy.iter().any(
+        |e| matches!(e, Event::HookFinished { name, ok: true, .. } if name == "PostToolUse")
     ));
 }
 

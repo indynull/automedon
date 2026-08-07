@@ -28,7 +28,7 @@ What each specialized driver **implements** in Automedon (prepare / parse / cont
 
 | Adapter | Launch | Multi-turn | Stream tools | Wait hooks | Perm preflight | Sessions | ACP | Notes |
 |---------|--------|------------|--------------|------------|----------------|----------|-----|-------|
-| `grok` | yes | yes | yes | partial | yes | yes | optional | Headless `streaming-json`; `--continue` when no id; ACP via `grok agent stdio` |
+| `grok` | yes | yes | yes | yes | yes | yes | optional | Headless `streaming-json`; tool lifecycle maps to Pre/PostToolUse; ACP via `grok agent stdio` |
 | `pi` | yes | yes | yes | yes | yes | yes | no | `--mode json`; tool lifecycle → Pre/PostToolUse |
 | `aider` | yes | yes | no | no | yes | yes | no | Message path has no agent tool stream |
 | `copilot` | yes | yes | yes | no | yes | yes | optional | Default `--output-format json`; text/tools/session from JSONL |
