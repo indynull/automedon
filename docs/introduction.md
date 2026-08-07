@@ -2,11 +2,12 @@
 
 **Automedon** is a production driver for **local AI coding-agent CLIs**. Teams use it to automate multi-turn checks against the real product binary — the same path a customer script would use — without inventing a bespoke shell harness per vendor.
 
-| Piece | Name |
+| Piece | What |
 |-------|------|
 | Library | Rust crate `automedon` |
 | CLI | **`medon`** |
-| Scripts | Rhai (`.rhai`) or the Rust API |
+| Scripts | [Rhai scripts](rhai.md) (`.rhai`) or the [Rust API](rust-api.md) |
+| Examples | [Ready-made scripts](examples.md) under `examples/mock/` and `examples/harnesses/` |
 
 It spawns the product CLI, normalizes its stream into events, and blocks until waits/expects match. It does **not** reimplement agents, score answers with an LLM judge, or perform product login for you.
 
@@ -22,9 +23,19 @@ It spawns the product CLI, normalizes its stream into events, and blocks until w
 
 ## Supported product adapters
 
-`claude` · `codex` · `gemini` · `opencode` · `grok` · `cursor` · `aider` · `pi` · `copilot`
+| Adapter | Docs | Daily multi-turn smoke |
+|---------|------|------------------------|
+| `claude` | [Claude Code](adapters/claude.md) | [`examples/harnesses/claude.rhai`](examples.md) |
+| `codex` | [OpenAI Codex](adapters/codex.md) | [`examples/harnesses/codex.rhai`](examples.md) |
+| `gemini` | [Gemini CLI](adapters/gemini.md) | [`examples/harnesses/gemini.rhai`](examples.md) |
+| `opencode` | [OpenCode](adapters/opencode.md) | [`examples/harnesses/opencode.rhai`](examples.md) |
+| `grok` | [Grok Build](adapters/grok.md) | [`examples/harnesses/grok.rhai`](examples.md) |
+| `cursor` | [Cursor agent](adapters/cursor.md) | [`examples/harnesses/cursor.rhai`](examples.md) |
+| `aider` | [Aider](adapters/aider.md) | [`examples/harnesses/aider.rhai`](examples.md) |
+| `pi` | [Pi](adapters/pi.md) | [`examples/harnesses/pi.rhai`](examples.md) |
+| `copilot` | [GitHub Copilot CLI](adapters/copilot.md) | [`examples/harnesses/copilot.rhai`](examples.md) |
 
-Plus offline `mock` and escape-hatch `generic`. Capability detail: [matrix](matrix.md).
+Also: offline [mock](examples.md) and escape-hatch `generic`. Capability detail: [matrix](matrix.md).
 
 ## Paths through the handbook
 
