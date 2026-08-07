@@ -13,4 +13,6 @@
 let s = launch("claude", #{ yolo: true, multi_turn: true, timeout_ms: 180_000 });
 ```
 
+Uses `--output-format stream-json`, `--verbose`, and `--include-hook-events` so tools and hooks appear on the stream.
+
 Requires Claude Code login / Anthropic credentials for the product CLI.

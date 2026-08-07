@@ -19,11 +19,13 @@ pub fn parse_common_json(value: &Value, channel: &str) -> Vec<Event> {
 
     match ty {
         "text" | "agent_message" | "message" => {
+            // OpenCode nests text under part.text; others use top-level text/data/content.
             let text = value
                 .get("data")
                 .or_else(|| value.get("text"))
                 .or_else(|| value.get("content"))
                 .and_then(|d| d.as_str())
+                .or_else(|| value.pointer("/part/text").and_then(|t| t.as_str()))
                 .unwrap_or("")
                 .to_string();
             if text.is_empty() {

@@ -135,8 +135,12 @@ impl Adapter for GeminiAdapter {
         if line.is_empty() {
             return Vec::new();
         }
-        // Vendor kill-switch surfaces as multi-line stack; still mark Error.
-        if line.contains("IneligibleTierError") || line.contains("no longer supported") {
+        // Auth / client errors often print as plain text or stack traces.
+        if line.contains("IneligibleTierError")
+            || line.contains("no longer supported")
+            || line.contains("Authentication required")
+            || line.contains("Error authenticating")
+        {
             return vec![Event::Error {
                 message: line.to_string(),
             }];
@@ -146,8 +150,31 @@ impl Adapter for GeminiAdapter {
         } else {
             line
         };
-        match serde_json::from_str(json_line) {
-            Ok(v) => shared_parse::parse_common_json(&v, "gemini"),
+        match serde_json::from_str::<serde_json::Value>(json_line) {
+            Ok(v) => {
+                let mut events = shared_parse::parse_common_json(&v, "gemini");
+                // Gemini stream-json: session id variants + message content arrays.
+                if let Some(sid) = v
+                    .get("session_id")
+                    .or_else(|| v.get("sessionId"))
+                    .or_else(|| v.pointer("/session/id"))
+                    .and_then(|s| s.as_str())
+                {
+                    if !events
+                        .iter()
+                        .any(|e| matches!(e, Event::SessionInfo { id, .. } if id == sid))
+                    {
+                        events.insert(
+                            0,
+                            Event::SessionInfo {
+                                id: sid.to_string(),
+                                label: Some("gemini".into()),
+                            },
+                        );
+                    }
+                }
+                events
+            }
             Err(_) => vec![Event::Raw {
                 channel: "gemini".into(),
                 line: line.to_string(),

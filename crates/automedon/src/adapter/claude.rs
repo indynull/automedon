@@ -45,12 +45,14 @@ impl Adapter for ClaudeAdapter {
     ) -> Result<PreparedLaunch> {
         let program = resolve_bin(opts, "claude");
         // Prefer print mode: -p / --print are equivalent on recent Claude Code.
+        // --print/-p + stream-json; --include-hook-events exposes hook lifecycle on the stream.
         let mut args = vec![
             "-p".into(),
             prompt.to_string(),
             "--output-format".into(),
             "stream-json".into(),
-            "--verbose".into(), // required for full stream-json event surface
+            "--verbose".into(),
+            "--include-hook-events".into(),
         ];
 
         // Multi-turn: --resume <id> when we have a session; else --continue on turn ≥ 2.

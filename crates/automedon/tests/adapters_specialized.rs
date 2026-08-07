@@ -267,7 +267,10 @@ fn copilot_prepare_acp_and_prompt() {
         .unwrap();
     let args = p.spawn.unwrap().args;
     assert!(args.windows(2).any(|w| w[0] == "-p" && w[1] == "hi"));
-    assert!(args.iter().any(|x| x == "--allow-all-tools"));
+    assert!(args.iter().any(|x| x == "--allow-all"));
+    assert!(args
+        .windows(2)
+        .any(|w| w[0] == "--output-format" && w[1] == "json"));
 
     let mut opts = LaunchOptions::default();
     opts.extra.insert("acp".into(), json!(true));
@@ -282,9 +285,7 @@ fn copilot_prepare_acp_and_prompt() {
         )
         .unwrap();
     let args = p.spawn.unwrap().args;
-    assert!(args
-        .windows(2)
-        .any(|w| w[0] == "--resume" && w[1] == "sess-cp"));
+    assert!(args.iter().any(|a| a == "--resume=sess-cp"));
 }
 
 #[test]
@@ -327,6 +328,7 @@ fn claude_prepare_resume_tools() {
     let args = p.spawn.unwrap().args;
     assert!(args.windows(2).any(|w| w[0] == "--resume" && w[1] == "cl1"));
     assert!(args.iter().any(|x| x == "--dangerously-skip-permissions"));
+    assert!(args.iter().any(|x| x == "--include-hook-events"));
     assert!(args
         .windows(2)
         .any(|w| w[0] == "--allowedTools" && w[1] == "Bash,Read"));
@@ -613,7 +615,8 @@ fn codex_resume_model_cwd_paths() {
     assert!(args
         .windows(2)
         .any(|w| w[0] == "--model" && w[1] == "gpt-x"));
-    assert!(args.windows(2).any(|w| w[0] == "--cd"));
+    // `codex exec resume` has no --cd; cwd applies on first exec turn only.
+    assert!(args.iter().any(|x| x == "--json"));
     assert!(matches!(a.parse_line(""), x if x.is_empty()));
     assert!(matches!(a.parse_line("plain"), x if matches!(x.first(), Some(Event::Raw { .. }))));
 }
@@ -699,13 +702,21 @@ fn copilot_model_and_parse_text() {
         .args
         .windows(2)
         .any(|w| w[0] == "--model" && w[1] == "gpt"));
+    // Live JSONL shapes (captured from copilot --output-format json).
     assert!(matches!(
-        a.parse_line(r#"{"type":"text","data":"z"}"#).first(),
+        a.parse_line(r#"{"type":"assistant.message_delta","data":{"deltaContent":"z"}}"#)
+            .first(),
         Some(Event::TextDelta { text }) if text == "z"
     ));
     assert!(matches!(
         a.parse_line("plain line").first(),
         Some(Event::TextDelta { text }) if text.contains("plain")
+    ));
+    let res = a.parse_line(
+        r#"{"type":"result","sessionId":"a81b42ef-a1ea-4b38-93de-8f8bf1287571","exitCode":0}"#,
+    );
+    assert!(res.iter().any(
+        |e| matches!(e, Event::SessionInfo { id, .. } if id == "a81b42ef-a1ea-4b38-93de-8f8bf1287571")
     ));
     assert!(matches!(a.parse_line(""), x if x.is_empty()));
 }
@@ -965,4 +976,98 @@ async fn session_capabilities_and_aider_synthetic_session_info() {
         "expected history session id, got {sid:?}"
     );
     s.close().await.ok();
+}
+
+/// Offline fixtures derived from real CLI stream captures (2026-08-07 host inventory).
+#[test]
+fn real_stream_fixtures_claude_codex_opencode_copilot_pi() {
+    // Claude Code stream-json (auth-fail still emits system init + result).
+    let claude = ClaudeAdapter;
+    let init = claude.parse_line(
+        r#"{"type":"system","subtype":"init","session_id":"06b815c5-636a-4834-9da8-1ef62d2927cd","apiKeySource":"none"}"#,
+    );
+    assert!(init.iter().any(
+        |e| matches!(e, Event::SessionInfo { id, .. } if id == "06b815c5-636a-4834-9da8-1ef62d2927cd")
+    ));
+    let res = claude.parse_line(
+        r#"{"type":"result","session_id":"06b815c5-636a-4834-9da8-1ef62d2927cd","is_error":true,"result":"Not logged in · Please run /login","subtype":"success","num_turns":1}"#,
+    );
+    assert!(res.iter().any(|e| matches!(e, Event::Error { .. })));
+    assert!(res.iter().any(|e| matches!(e, Event::TurnComplete { .. })));
+    assert!(claude
+        .prepare("q", &LaunchOptions::default(), &ctx_turn(1, None))
+        .unwrap()
+        .spawn
+        .unwrap()
+        .args
+        .iter()
+        .any(|a| a == "--include-hook-events"));
+
+    // Codex exec --json
+    let codex = CodexAdapter;
+    let th = codex.parse_line(r#"{"type":"thread.started","thread_id":"019fd9f5-c0b7-77c2-b57f-99880d00fd83"}"#);
+    assert!(th.iter().any(
+        |e| matches!(e, Event::SessionInfo { id, .. } if id == "019fd9f5-c0b7-77c2-b57f-99880d00fd83")
+    ));
+    let err = codex.parse_line(
+        r#"{"type":"error","message":"Reconnecting... 2/5 (unexpected status 401 Unauthorized)"}"#,
+    );
+    assert!(matches!(err.first(), Some(Event::Error { .. })));
+    let p = codex
+        .prepare("hi", &LaunchOptions::default(), &ctx_turn(2, None))
+        .unwrap();
+    let args = p.spawn.unwrap().args;
+    assert!(args.iter().any(|a| a == "resume"));
+    assert!(args.iter().any(|a| a == "--last"));
+
+    // OpenCode run --format json
+    let oc = OpenCodeAdapter;
+    let start = oc.parse_line(
+        r#"{"type":"step_start","sessionID":"ses_02609fb1fffeo0q04BdpZ7eR2p","part":{"type":"step-start"}}"#,
+    );
+    assert!(start.iter().any(
+        |e| matches!(e, Event::SessionInfo { id, .. } if id == "ses_02609fb1fffeo0q04BdpZ7eR2p")
+    ));
+    let text = oc.parse_line(
+        r#"{"type":"text","sessionID":"ses_02609fb1fffeo0q04BdpZ7eR2p","part":{"type":"text","text":"Hi"}}"#,
+    );
+    assert!(text.iter().any(|e| matches!(e, Event::TextDelta { text } if text == "Hi")));
+
+    // Copilot --output-format json
+    let cp = CopilotAdapter;
+    let delta = cp.parse_line(
+        r#"{"type":"assistant.message_delta","data":{"deltaContent":"HI_ONLY"}}"#,
+    );
+    assert!(matches!(
+        delta.first(),
+        Some(Event::TextDelta { text }) if text == "HI_ONLY"
+    ));
+    let end = cp.parse_line(
+        r#"{"type":"result","sessionId":"a81b42ef-a1ea-4b38-93de-8f8bf1287571","exitCode":0}"#,
+    );
+    assert!(end.iter().any(
+        |e| matches!(e, Event::SessionInfo { id, .. } if id == "a81b42ef-a1ea-4b38-93de-8f8bf1287571")
+    ));
+
+    // Pi --mode json
+    let pi = PiAdapter;
+    let sess = pi.parse_line(
+        r#"{"type":"session","version":3,"id":"019fd9f6-543a-7d1b-869d-8a50f8a6f208"}"#,
+    );
+    assert!(sess.iter().any(
+        |e| matches!(e, Event::SessionInfo { id, .. } if id == "019fd9f6-543a-7d1b-869d-8a50f8a6f208")
+    ));
+    let msg = pi.parse_line(
+        r#"{"type":"message_update","assistantMessageEvent":{"type":"text_delta","delta":"hi"}}"#,
+    );
+    assert!(matches!(msg.first(), Some(Event::TextDelta { text }) if text == "hi"));
+}
+
+#[test]
+fn grok_continue_when_no_session_id() {
+    let a = GrokAdapter;
+    let p = a
+        .prepare("again", &LaunchOptions::default(), &ctx_turn(2, None))
+        .unwrap();
+    assert!(p.spawn.unwrap().args.iter().any(|x| x == "--continue"));
 }

@@ -75,16 +75,13 @@ impl Adapter for CodexAdapter {
         }
 
         let program = resolve_bin(opts, "codex");
-        // Multi-turn: `codex exec resume <id> --json [prompt]`
-        // First turn: `codex exec --json <prompt>`
+        // First turn: `codex exec --json [opts] <prompt>`
+        // Multi-turn: `codex exec resume --json [opts] <session_id|--last> <prompt>`
+        // (see `codex exec resume --help`)
         let mut args = vec!["exec".into()];
         if ctx.turn > 1 {
-            if let Some(id) = ctx.session_id.as_ref().filter(|s| !s.is_empty()) {
-                args.push("resume".into());
-                args.push(id.clone());
-            }
+            args.push("resume".into());
         }
-        // Flags before positional prompt when not using resume's default last message.
         args.push("--json".into());
         if opts.yolo {
             args.push("--dangerously-bypass-approvals-and-sandbox".into());
@@ -96,15 +93,23 @@ impl Adapter for CodexAdapter {
             args.push("--model".into());
             args.push(model.into());
         }
-        if let Some(cwd) = &opts.cwd {
-            args.push("--cd".into());
-            args.push(cwd.display().to_string());
+        if ctx.turn <= 1 {
+            if let Some(cwd) = &opts.cwd {
+                args.push("--cd".into());
+                args.push(cwd.display().to_string());
+            }
+            if let Some(sandbox) = opts.extra.get("sandbox").and_then(|v| v.as_str()) {
+                args.push("--sandbox".into());
+                args.push(sandbox.into());
+            }
         }
-        if let Some(sandbox) = opts.extra.get("sandbox").and_then(|v| v.as_str()) {
-            args.push("--sandbox".into());
-            args.push(sandbox.into());
+        if ctx.turn > 1 {
+            if let Some(id) = ctx.session_id.as_ref().filter(|s| !s.is_empty()) {
+                args.push(id.clone());
+            } else {
+                args.push("--last".into());
+            }
         }
-        // Prompt last (resume can omit to continue last; we always send explicit prompt).
         args.push(prompt.to_string());
 
         Ok(PreparedLaunch {

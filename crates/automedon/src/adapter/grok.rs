@@ -71,15 +71,34 @@ impl Adapter for GrokAdapter {
             "streaming-json".into(),
         ];
 
-        // Multi-turn: resume prior harness session when we have an id.
-        if let Some(id) = ctx.session_id.as_ref().filter(|s| !s.is_empty()) {
-            if ctx.turn > 1 {
+        // Multi-turn: --resume <id> when known; else --continue for turn ≥ 2 (most recent cwd session).
+        if ctx.turn > 1 {
+            if let Some(id) = ctx.session_id.as_ref().filter(|s| !s.is_empty()) {
                 args.push("--resume".into());
                 args.push(id.clone());
+            } else if opts
+                .extra
+                .get("continue")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(true)
+            {
+                args.push("--continue".into());
             }
-        } else if let Some(id) = opts.extra.get("session_id").and_then(|v| v.as_str()) {
-            args.push("--session-id".into());
-            args.push(id.into());
+        } else if let Some(id) = opts
+            .extra
+            .get("resume")
+            .or_else(|| opts.extra.get("session_id"))
+            .and_then(|v| v.as_str())
+            .filter(|s| !s.is_empty())
+        {
+            // Explicit resume/session on first prompt when operator supplies an id.
+            if opts.extra.get("resume").is_some() {
+                args.push("--resume".into());
+                args.push(id.into());
+            } else {
+                args.push("--session-id".into());
+                args.push(id.into());
+            }
         }
 
         if opts.yolo {

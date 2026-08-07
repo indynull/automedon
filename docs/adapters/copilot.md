@@ -4,7 +4,7 @@
 |--|--|
 | Adapter id | `copilot` |
 | Binary | `copilot` |
-| Multi-turn | `--resume` when SessionInfo is parsed from the Resume footer |
+| Multi-turn | `--resume=<id>` / `--continue`; session id from JSONL `result.sessionId` |
 | Example | `examples/harnesses/copilot.rhai` |
 
 ## Launch
@@ -13,4 +13,6 @@
 let s = launch("copilot", #{ yolo: true, timeout_ms: 180_000 });
 ```
 
-Optional ACP prepare: `acp: true`. Requires Copilot CLI login.
+By default Automedon uses `--output-format json` (JSONL) so text deltas, toolRequests, and the final `result.sessionId` are structured. `yolo` maps to `--allow-all`.
+
+Optional ACP: `acp: true` → `copilot --acp`. Requires Copilot CLI login.

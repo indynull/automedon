@@ -43,10 +43,22 @@ impl Adapter for CursorAdapter {
     ) -> Result<PreparedLaunch> {
         let (program, mut args) = resolve_cursor_bin(opts, prompt);
 
+        // cursor-agent: -p/--print + --output-format stream-json
+        if !args.iter().any(|a| a == "--print" || a == "-p") {
+            args.insert(0, "--print".into());
+        }
         args.push("--output-format".into());
         args.push("stream-json".into());
+        if opts
+            .extra
+            .get("stream_partial")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(true)
+        {
+            args.push("--stream-partial-output".into());
+        }
         if opts.yolo {
-            // Cursor agent force/yolo-style flags (version-dependent; both common).
+            // --yolo is alias for --force on current agent builds.
             if !args.iter().any(|a| a == "--force" || a == "--yolo") {
                 args.push("--force".into());
             }

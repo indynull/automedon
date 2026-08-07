@@ -115,10 +115,10 @@ impl Adapter for OpenCodeAdapter {
         } else {
             line
         };
-        match serde_json::from_str(json_line) {
+        match serde_json::from_str::<serde_json::Value>(json_line) {
             Ok(v) => {
                 let mut events = shared_parse::parse_common_json(&v, "opencode");
-                // OpenCode text often nested under part / message
+                // Prefer nested part payloads when common parse only returned metadata.
                 if events.iter().all(|e| {
                     matches!(
                         e,
@@ -127,6 +127,70 @@ impl Adapter for OpenCodeAdapter {
                 }) {
                     if let Some(text) = extract_opencode_text(&v) {
                         events.push(Event::TextDelta { text });
+                    }
+                }
+                // Tool parts under part.type == "tool-invocation" / tool
+                if let Some(part) = v.get("part") {
+                    let pty = part.get("type").and_then(|t| t.as_str()).unwrap_or("");
+                    if pty.contains("tool") || pty == "tool-invocation" {
+                        let id = part
+                            .get("id")
+                            .or_else(|| part.get("callID"))
+                            .and_then(|x| x.as_str())
+                            .unwrap_or("")
+                            .to_string();
+                        let name = part
+                            .get("tool")
+                            .or_else(|| part.get("name"))
+                            .and_then(|x| x.as_str())
+                            .unwrap_or("unknown")
+                            .to_string();
+                        if part.get("state").and_then(|s| s.as_str()) == Some("completed")
+                            || pty.contains("result")
+                        {
+                            events.push(Event::ToolResult {
+                                id,
+                                name,
+                                output: part
+                                    .get("output")
+                                    .or_else(|| part.get("result"))
+                                    .map(|x| match x {
+                                        serde_json::Value::String(s) => s.clone(),
+                                        other => other.to_string(),
+                                    })
+                                    .unwrap_or_default(),
+                                is_error: false,
+                            });
+                        } else {
+                            events.push(Event::ToolCall {
+                                id,
+                                name,
+                                input: part
+                                    .get("input")
+                                    .or_else(|| part.get("args"))
+                                    .cloned()
+                                    .unwrap_or(serde_json::Value::Null),
+                            });
+                        }
+                    }
+                }
+                // Always attach sessionID when present on any frame.
+                if let Some(sid) = v
+                    .get("sessionID")
+                    .or_else(|| v.get("sessionId"))
+                    .and_then(|s| s.as_str())
+                {
+                    if !events
+                        .iter()
+                        .any(|e| matches!(e, Event::SessionInfo { id, .. } if id == sid))
+                    {
+                        events.insert(
+                            0,
+                            Event::SessionInfo {
+                                id: sid.to_string(),
+                                label: Some("opencode".into()),
+                            },
+                        );
                     }
                 }
                 events
