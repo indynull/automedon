@@ -249,6 +249,68 @@ async fn live_codex_launch() {
     s.close().await.ok();
 }
 
+/// Multi-turn resume + tools against live OpenAI Codex CLI.
+#[tokio::test(flavor = "multi_thread")]
+#[ignore = "live: set AUTOMEDON_LIVE_CODEX=1"]
+async fn live_codex_multi_turn_and_tools() {
+    if skip_if("codex", &["codex"]) {
+        return;
+    }
+    let mut s = Session::builder("codex")
+        .yolo(true)
+        .timeout(Duration::from_secs(300))
+        .build()
+        .expect("build");
+
+    s.prompt(
+        "Create examples/automedon_demo if needed. Write examples/automedon_demo/live_codex.txt \
+         with exactly one line: LIVE_CODEX_T1. Use file tools. End with LIVE_CODEX_T1.",
+    )
+    .await
+    .expect("prompt t1");
+    s.wait(automedon::Wait::tool_any().timeout(Duration::from_secs(240)))
+        .await
+        .expect("tool t1");
+    s.expect(Expect::text("LIVE_CODEX_T1").timeout(Duration::from_secs(240)))
+        .await
+        .expect("text t1");
+    s.await_turn().await.expect("await t1");
+    let sid1 = s.session_id().map(str::to_string);
+    assert!(
+        sid1.as_ref().is_some_and(|id| !id.is_empty()),
+        "expected session id after turn 1"
+    );
+    assert!(
+        !s.transcript().tools().is_empty(),
+        "expected tool activity on turn 1"
+    );
+
+    s.prompt(
+        "Continue same session. Read examples/automedon_demo/live_codex.txt, append line \
+         LIVE_CODEX_T2, reply with file contents, end with LIVE_CODEX_OK.",
+    )
+    .await
+    .expect("prompt t2");
+    s.wait(automedon::Wait::tool_any().timeout(Duration::from_secs(240)))
+        .await
+        .expect("tool t2");
+    s.expect(Expect::text("LIVE_CODEX_OK").timeout(Duration::from_secs(240)))
+        .await
+        .expect("text t2");
+    s.await_turn().await.expect("await t2");
+
+    let text = s.text().to_string();
+    assert!(
+        text.contains("LIVE_CODEX_T1") && text.contains("LIVE_CODEX_OK"),
+        "multi-turn text missing: {text}"
+    );
+    assert!(s.turn() >= 2, "turn={}", s.turn());
+    if let (Some(a), Some(b)) = (sid1.as_deref(), s.session_id()) {
+        assert_eq!(a, b, "session id should be stable across turns when known");
+    }
+    s.close().await.ok();
+}
+
 #[tokio::test(flavor = "multi_thread")]
 #[ignore = "live: set AUTOMEDON_LIVE_GEMINI=1"]
 async fn live_gemini_launch_and_text() {

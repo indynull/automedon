@@ -359,6 +359,29 @@ fn parse_codex_item(value: &Value, completed: bool) -> Vec<Event> {
                 }]
             }
         }
+        // Live Codex stream (2026): file writes/edits as file_change items, not command_execution.
+        "file_change" | "file_edit" | "apply_patch" => {
+            let name = item_ty.to_string();
+            let input = item
+                .get("changes")
+                .or_else(|| item.get("path"))
+                .cloned()
+                .unwrap_or_else(|| item.clone());
+            if completed {
+                let failed = item.get("status").and_then(|s| s.as_str()) == Some("failed");
+                vec![Event::ToolResult {
+                    id,
+                    name,
+                    output: match &input {
+                        Value::String(s) => s.clone(),
+                        other => other.to_string(),
+                    },
+                    is_error: failed,
+                }]
+            } else {
+                vec![Event::ToolCall { id, name, input }]
+            }
+        }
         "error" => vec![Event::Error {
             message: item
                 .get("message")
@@ -601,6 +624,41 @@ mod tests {
             "codex",
         );
         assert!(matches!(e.first(), Some(Event::TextDelta { text }) if text == "hi"));
+        // Live codex exec: file_change items (path in changes[]) map to tools.
+        let e = parse_common_json(
+            &json!({
+                "type":"item.started",
+                "item":{
+                    "id":"item_1",
+                    "type":"file_change",
+                    "changes":[{"path":"/tmp/note.txt","kind":"add"}],
+                    "status":"in_progress"
+                }
+            }),
+            "codex",
+        );
+        assert!(
+            matches!(e.first(), Some(Event::ToolCall { name, input, .. })
+                if name == "file_change" && input.to_string().contains("note.txt")),
+            "{e:?}"
+        );
+        let e = parse_common_json(
+            &json!({
+                "type":"item.completed",
+                "item":{
+                    "id":"item_1",
+                    "type":"file_change",
+                    "changes":[{"path":"/tmp/note.txt","kind":"add"}],
+                    "status":"completed"
+                }
+            }),
+            "codex",
+        );
+        assert!(
+            matches!(e.first(), Some(Event::ToolResult { name, is_error: false, .. })
+                if name == "file_change"),
+            "{e:?}"
+        );
         let e = parse_common_json(
             &json!({"type":"item.completed","item":{"id":"i","type":"error","message":"boom"}}),
             "codex",
