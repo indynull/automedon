@@ -1,15 +1,10 @@
-# Waits and flakes
+# Waiting on the stream
 
-## Why wait
+Agent streams are asynchronous. Asserting only on final text races tools and multi-step turns. **Wait** and **expect** block until a condition matches or the timeout expires.
 
-Agent streams are asynchronous. Asserting only on final text often races tools and multi-step turns. Wait/expect block until a condition matches or the timeout expires.
+## Practical habits
 
-## Rules of thumb
-
-1. Prefer **specific** waits (`tool("bash")`, `text("DONE")`) over sleeping.
-2. Call **`await_turn()`** before the next `prompt` when the turn may still be streaming.
-3. Set **`timeout_ms`** (or Rust `timeout`) high enough for real model latency (often 60–180s live).
-4. **Process-per-turn:** session id must be captured before turn 2 (stdout JSON, or stderr footer for Copilot).
+Prefer **specific** waits (`tool("bash")`, `text("DONE")`) over sleeping. Call **`await_turn()`** before the next `prompt` while a turn may still be streaming. Set **`timeout_ms`** high enough for real model latency (often 60–180s on product CLIs). For **process-per-turn** adapters, the session id must be captured before turn 2 (stdout JSON, or Copilot’s stderr Resume footer).
 
 ## Common flake causes
 

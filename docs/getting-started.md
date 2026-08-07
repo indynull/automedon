@@ -2,29 +2,27 @@
 
 ## Install
 
-### From a git checkout
+From a git checkout:
 
 ```bash
 git clone https://github.com/indynull/automedon.git
 cd automedon
 cargo build -p automedon-cli --release
-cargo install --path crates/automedon-cli   # installs `medon` on PATH
+cargo install --path crates/automedon-cli   # puts `medon` on PATH
 ```
 
-Requires a recent Rust toolchain (see `rust-version` in the workspace `Cargo.toml`).
+Needs a recent Rust toolchain (`rust-version` in the workspace `Cargo.toml`).
 
-### Verify
+Check the binary:
 
 ```bash
 medon --help
 medon adapters
 ```
 
-`medon adapters` lists harnesses and which capability bits each driver advertises.
+## Run offline first
 
-## First green runs
-
-### Offline (mock — no product CLI)
+The **mock** harness is in-process. No product CLI and no API keys.
 
 ```bash
 medon run examples/mock/smoke.rhai --print
@@ -32,29 +30,22 @@ medon run examples/mock/multi_turn.rhai --print
 medon shot mock "hello" --scenario echo
 ```
 
-### Product harnesses (CLI + auth)
-
-```bash
-medon run examples/harnesses/grok.rhai --print
-medon run examples/harnesses/pi.rhai --print
-# see examples/harnesses/README.md
-```
-
-## Develop in-tree without installing
+Without installing:
 
 ```bash
 cargo run -p automedon-cli -- run examples/mock/smoke.rhai --print
 ```
 
-## Project checks
+## Drive a real product CLI
+
+Install that product’s CLI, complete its normal login, then:
 
 ```bash
-make check   # fmt, clippy -D warnings, tests, line coverage on crate automedon
-make book    # handbook (needs mdbook)
+medon run examples/harnesses/grok.rhai --print
 ```
+
+Catalog and layout: [Examples](examples.md). Per-product flags: [Adapters](adapters/index.md).
 
 ## Next
 
-- [First script](first-script.md)  
-- [CLI](cli.md)  
-- [Live harnesses](live.md) / [Adapters](adapters/index.md)  
+Open [Write a script](first-script.md) to walk through multi-turn. Use [Command line](cli.md) for `run` / `eval` / `shot`.

@@ -1,25 +1,26 @@
 # Introduction
 
-**Automedon** drives local AI coding-agent CLIs (Grok, Claude, Codex, Pi, and others) through one session and event model.
+**Automedon** is a library and CLI that drives **local** AI coding-agent programs (Grok Build, Claude Code, Codex, Pi, and others) through one session model.
 
-- **Library:** Rust crate `automedon`
-- **CLI:** `medon` (from crate `automedon-cli`)
-- **Scripts:** Rhai (`.rhai`) or the Rust API
+You write a short script or a few lines of Rust. Automedon spawns the real product CLI, normalizes its stream into events, and lets you wait and assert — multi-turn, tools, hooks, permissions — without a bespoke shell pipeline per vendor.
 
-It does not reimplement agents and is not an LLM-as-judge scorer. It spawns the real harness binary, normalizes its stream into events, and lets you wait and assert.
+| Piece | Name |
+|-------|------|
+| Library | crate `automedon` |
+| CLI | **`medon`** |
+| Scripts | Rhai (`.rhai`) or the Rust API |
 
-## What you need
+It does **not** reimplement agents, score answers with an LLM judge, or replace the product’s own login.
 
-| Use case | Requirements |
-|----------|----------------|
-| Offline tutorial | Rust toolchain; no API keys |
-| Live harness | That product’s CLI on `PATH` + vendor login/credentials |
+## Paths through this handbook
 
-## Where to go next
+| If you want to… | Start here |
+|-----------------|------------|
+| Install and run something offline | [Getting started](getting-started.md) |
+| Learn the script pattern | [Write a script](first-script.md) |
+| Understand sessions, events, multi-turn | [How it works](concepts.md) |
+| Drive a specific product CLI | [Adapters](adapters/index.md) |
+| See what each driver supports | [Capability matrix](matrix.md) |
+| Copy a ready-made example | [Examples](examples.md) |
 
-1. [Getting started](getting-started.md) — install and first green run  
-2. [First script](first-script.md) — multi-turn with the mock harness  
-3. [Live harnesses](live.md) — real CLIs  
-4. [Adapters](adapters/index.md) — per-product flags and launch options  
-
-Capability surface: [matrix.md](matrix.md). Product goal: [goal.md](goal.md).
+Internals (architecture, continuous integration) live under **Internals** in the sidebar — optional unless you are changing the tree.

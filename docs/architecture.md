@@ -66,4 +66,6 @@ Product adapters advertise bits for control paths they implement. Mock may adver
 
 - Reimplementing each TUI  
 - LLM-as-judge scoring  
-- Pretending mock success is product delivery  
+- Treating mock success as product delivery  
+
+Product goal checklist (maintainers): repository root [`GOAL.md`](https://github.com/indynull/automedon/blob/main/GOAL.md).

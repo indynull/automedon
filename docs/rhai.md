@@ -65,4 +65,4 @@ timeout_ms(wait_text("x"), 60_000)
 | `examples/mock/*` | Offline mock (CI + learning) |
 | `examples/harnesses/*` | Product adapters |
 
-See [live.md](live.md) and `examples/README.md`.
+See [Examples](examples.md) and `examples/README.md` in the repo.

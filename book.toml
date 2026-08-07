@@ -16,8 +16,14 @@ git-repository-url = "https://github.com/indynull/automedon"
 edit-url-template = "https://github.com/indynull/automedon/edit/main/docs/{path}"
 site-url = "/automedon/"
 additional-css = ["theme/css/custom.css"]
+# Nested chapters, not a 1–N inventory of every page.
+no-section-label = true
 
 # Rhai samples are fenced as rust for highlight.js (Rhai has no hljs grammar;
 # see https://rhai.rs/book/about/related.html). Do not wrap them in the Rust playground.
 [output.html.playground]
 runnable = false
+
+[output.html.fold]
+enable = true
+level = 1

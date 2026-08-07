@@ -1,8 +1,8 @@
-# First script
+# Write a script
 
-Start offline with **mock**, then point `launch` at a product id.
+Scripts are Rhai files. Handbook fences use the `rust` language tag for highlighting (highlight.js has no Rhai grammar; [Rhai’s own book](https://rhai.rs/book/about/related.html) recommends that).
 
-## Offline multi-turn (mock)
+## Offline: multi-turn with mock
 
 ```rust
 // examples/mock/multi_turn.rhai (simplified)
@@ -14,7 +14,7 @@ s.expect(text("T1:alpha"));
 s.await_turn();
 
 s.prompt("beta");
-s.expect(text("prior=T1:alpha"));
+s.expect(text("prior=T1:alpha"));  // second turn sees prior context
 s.await_turn();
 
 s.close();
@@ -24,9 +24,9 @@ s.close();
 medon run examples/mock/multi_turn.rhai --print
 ```
 
-## Product multi-turn (Grok)
+## Same shape on a product harness
 
-Needs `grok` on `PATH` and Grok authentication.
+Swap the adapter id and drop mock-only options. Example with Grok (needs `grok` on `PATH` + login):
 
 ```rust
 let s = launch("grok", #{
@@ -50,23 +50,16 @@ s.close();
 medon run examples/harnesses/grok.rhai --print
 ```
 
-## Pattern
+## Session API (what you call)
 
-| Step | Purpose |
-|------|---------|
-| `launch(name, opts)` | Start a session for one adapter |
-| `prompt(...)` | User turn |
+| Call | Role |
+|------|------|
+| `launch(name, opts)` | Open a session for one adapter |
+| `prompt(...)` | Send a user turn |
 | `expect` / `wait` | Block until a stream condition matches |
 | `await_turn()` | Drain until the current turn ends |
-| `close()` | Tear down |
+| `close()` | Tear down the session |
 
-## Waits on tools and hooks
+Waits on tools and hooks: offline `examples/mock/wait_hooks.rhai`, product `examples/harnesses/pi_tools.rhai`. Details in [Waiting on the stream](waits.md).
 
-Offline: `examples/mock/wait_hooks.rhai`.  
-Product (Pi): `examples/harnesses/pi_tools.rhai`.
-
-## Next
-
-- [Concepts](concepts.md)  
-- [Rhai scripting](rhai.md)  
-- [Adapters](adapters/index.md)  
+Full surface: [Rhai scripts](rhai.md). Events and multi-turn model: [How it works](concepts.md).

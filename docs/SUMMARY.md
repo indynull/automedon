@@ -2,34 +2,33 @@
 
 [Introduction](introduction.md)
 
-# User guide
+# Guide
 
 - [Getting started](getting-started.md)
-- [First script](first-script.md)
-- [Concepts](concepts.md)
-- [CLI (`medon`)](cli.md)
-- [Rhai scripting](rhai.md)
+- [Write a script](first-script.md)
+- [How it works](concepts.md)
+- [Command line](cli.md)
+- [Rhai scripts](rhai.md)
 - [Rust API](rust-api.md)
-- [Live harnesses](live.md)
-- [Waits and flakes](waits.md)
+- [Waiting on the stream](waits.md)
 - [Troubleshooting](troubleshooting.md)
 
-# Adapters
+# Reference
 
-- [Overview](adapters/index.md)
-- [Grok](adapters/grok.md)
-- [Pi](adapters/pi.md)
-- [Aider](adapters/aider.md)
-- [Copilot](adapters/copilot.md)
-- [Claude](adapters/claude.md)
-- [Codex](adapters/codex.md)
-- [OpenCode](adapters/opencode.md)
-- [Cursor](adapters/cursor.md)
-- [Gemini](adapters/gemini.md)
-
-# Project
-
-- [CI and releases](ci-and-releases.md)
-- [Architecture](architecture.md)
+- [Adapters](adapters/index.md)
+  - [Grok](adapters/grok.md)
+  - [Pi](adapters/pi.md)
+  - [Aider](adapters/aider.md)
+  - [Copilot](adapters/copilot.md)
+  - [Claude](adapters/claude.md)
+  - [Codex](adapters/codex.md)
+  - [OpenCode](adapters/opencode.md)
+  - [Cursor](adapters/cursor.md)
+  - [Gemini](adapters/gemini.md)
 - [Capability matrix](matrix.md)
-- [Product goal](goal.md)
+- [Examples](examples.md)
+
+# Internals
+
+- [Architecture](architecture.md)
+- [CI and releases](ci-and-releases.md)

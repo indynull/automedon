@@ -1,54 +1,63 @@
-# Concepts
+# How it works
 
 ## Session
 
-A `Session` is one Automedon conversation with a harness. It owns:
+A **session** is one Automedon conversation with a harness. It owns the adapter, the event transcript, multi-turn context (session id, turn index), and process supervision (kill-on-drop).
 
-- The adapter (how to spawn and parse)
-- The event transcript
-- Multi-turn context (session id, turn number)
-- Process supervision (kill-on-drop)
+```
+Script  ──►  Session  ──►  Adapter.prepare()
+                │                │
+                │                ├─ child process (stdout / ACP)
+                │                └─ synthetic events (mock)
+                ▼
+         Wait / Expect  ◄──  normalized Event stream
+                │
+                ▼
+            Transcript
+```
 
 ## Events
 
-Adapters normalize product streams into shared events, including:
+Adapters map product streams into a shared event set. The important ones:
 
 | Event | Meaning |
 |-------|---------|
 | `TextDelta` / `ThinkingDelta` | Assistant text / thinking |
 | `ToolCall` / `ToolResult` | Model tool use |
-| `HookStarted` / `HookFinished` | Lifecycle hooks (e.g. PreToolUse) |
-| `TurnComplete` | Current **turn** finished |
+| `HookStarted` / `HookFinished` | Lifecycle around tools/turns |
+| `TurnComplete` | This **turn** finished |
 | `ProcessExit` | Child process exited |
-| `SessionInfo` | Session / resume id from the harness |
-| `Done` | **Session** finished (do not use for per-turn end on product adapters) |
+| `SessionInfo` | Resume / session id from the product |
+| `Done` | **Session** finished (not a stand-in for turn end) |
 | `Error` | Harness or adapter error |
 
 ## Multi-turn
 
-Many CLIs are **process-per-turn**: each `prompt` spawns a new process with resume/history flags. Others keep one long-lived process (e.g. Grok ACP).
+Two common shapes:
 
-- Continuity uses `SessionInfo` / session id on the next prepare (resume, session-id, chat-history path, …).
-- `TurnComplete` or `ProcessExit` ends a turn; `Done` closes the whole session.
+- **Process-per-turn** — each `prompt` may spawn a new process with resume/history flags. Continuity depends on capturing `SessionInfo` (or a history path) before the next turn.
+- **Long-lived process** — e.g. Grok ACP (`extra.acp`): one process, many turns.
+
+Turn end is `TurnComplete` and/or `ProcessExit`. Session end is `Done` or `close()`. Product multi-turn adapters must not treat every turn result as session `Done`.
 
 ## Wait and expect
 
-Both match predicates on the event stream. Prefer waits for tools/hooks; expect for text/markers. Share the same timeout defaults from launch options when configured.
+Both match predicates on the event stream. Prefer **waits** for tools and hooks; **expect** for text markers. Timeouts come from launch options (`timeout_ms`) or per-predicate overrides.
+
+See [Waiting on the stream](waits.md).
 
 ## Capabilities
 
-Product adapters advertise features the driver implements. Calling `approve` / `approve_plan` without the interactive bit fails with a clear error.
-
-List current bits:
+Each adapter advertises what its **driver** implements (launch, multi-turn, tools, ACP, …). Calling something that is not implemented fails closed with a clear error — for example interactive `approve` when the adapter has no mid-flight control path.
 
 ```bash
 medon adapters
 ```
 
-Status table: [matrix.md](matrix.md).
+Full table: [Capability matrix](matrix.md).
 
-## Adapters
+## Where product quirks live
 
-One module per product: discover binary, build argv (or ACP spawn), parse lines to events, optional encode for mid-flight control. Quirks stay in the adapter and `LaunchOptions.extra` — not new Session methods per product.
+Binary discovery, argv, frame parse, and encode stay in the **adapter**. Product-specific knobs go in `LaunchOptions.extra` / the Rhai launch map (`provider`, `acp`, `chat_history_file`, …) — not new `Session` methods per vendor.
 
-See [Architecture](architecture.md).
+Design detail: [Architecture](architecture.md). Catalog: [Adapters](adapters/index.md).
