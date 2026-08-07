@@ -498,7 +498,7 @@ mod tests {
             .spawn
             .unwrap();
         assert!(
-            p.program.ends_with("cursor-agent") || p.program == PathBuf::from("cursor-agent"),
+            p.program.ends_with("cursor-agent") || p.program.as_os_str() == "cursor-agent",
             "{:?}",
             p.program
         );
