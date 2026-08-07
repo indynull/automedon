@@ -11,6 +11,8 @@ fn adapters_lists_mock() {
         .arg("adapters")
         .assert()
         .success()
+        .stdout(predicate::str::contains("NAME"))
+        .stdout(predicate::str::contains("grok"))
         .stdout(predicate::str::contains("mock"));
 }
 

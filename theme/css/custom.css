@@ -1,189 +1,212 @@
-/* Automedon handbook — Furo/coredis-inspired theme (Fira + gruvbox accents). */
+/* Automedon handbook — clean product docs (neutral zinc + blue, Inter).
+ * mdBook uses html { font-size: 62.5% } so 1rem ≈ 10px. Do not override that. */
 
-@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Fira+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
-/* mdBook sets html { font-size: 62.5% } so 1rem ≈ 10px. Do not override that. */
 :root {
   --sidebar-width: 28rem;
-  --page-padding: 1.5rem;
-  --content-max-width: 84rem;
-  --menu-bar-height: 5rem;
-  --main-font: "Fira Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --mono-font: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  /* ~15–16px body on the 10px rem scale */
-  --code-font-size: 1.45rem;
+  --page-padding: 2rem;
+  --content-max-width: 80rem;
+  --menu-bar-height: 5.2rem;
+  --main-font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono-font: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --code-font-size: 1.4rem;
 }
 
+/* —— Light —— */
+.light {
+  --bg: #ffffff;
+  --fg: #18181b;
+
+  --sidebar-bg: #fafafa;
+  --sidebar-fg: #3f3f46;
+  --sidebar-non-existant: #a1a1aa;
+  --sidebar-active: #2563eb;
+  --sidebar-spacer: #f4f4f5;
+
+  --scrollbar: #d4d4d8;
+
+  --icons: #71717a;
+  --icons-hover: #18181b;
+
+  --links: #2563eb;
+
+  --inline-code-color: #be185d;
+
+  --theme-popup-bg: #ffffff;
+  --theme-popup-border: #e4e4e7;
+  --theme-hover: #f4f4f5;
+
+  --quote-bg: #f4f4f5;
+  --quote-border: #e4e4e7;
+
+  --warning-border: #f59e0b;
+
+  --table-border-color: #e4e4e7;
+  --table-header-bg: #fafafa;
+  --table-alternate-bg: #fafafa;
+
+  --searchbar-border-color: #e4e4e7;
+  --searchbar-bg: #ffffff;
+  --searchbar-fg: #18181b;
+  --searchbar-shadow-color: #e4e4e7;
+  --searchresults-header-fg: #71717a;
+  --searchresults-border-color: #e4e4e7;
+  --searchresults-li-bg: #fafafa;
+  --search-mark-bg: #fef08a;
+
+  --color-scheme: light;
+
+  --code-block-bg: #f4f4f5;
+  --code-block-fg: #18181b;
+  --heading-color: #09090b;
+  --brand: #2563eb;
+  --border-subtle: #e4e4e7;
+  --muted: #71717a;
+}
+
+/* —— Dark —— */
+.navy,
+.coal,
+.ayu {
+  --bg: #09090b;
+  --fg: #fafafa;
+
+  --sidebar-bg: #0c0c0e;
+  --sidebar-fg: #d4d4d8;
+  --sidebar-non-existant: #52525b;
+  --sidebar-active: #60a5fa;
+  --sidebar-spacer: #18181b;
+
+  --scrollbar: #3f3f46;
+
+  --icons: #a1a1aa;
+  --icons-hover: #fafafa;
+
+  --links: #60a5fa;
+
+  --inline-code-color: #f472b6;
+
+  --theme-popup-bg: #18181b;
+  --theme-popup-border: #27272a;
+  --theme-hover: #18181b;
+
+  --quote-bg: #18181b;
+  --quote-border: #27272a;
+
+  --warning-border: #fbbf24;
+
+  --table-border-color: #27272a;
+  --table-header-bg: #18181b;
+  --table-alternate-bg: #0c0c0e;
+
+  --searchbar-border-color: #27272a;
+  --searchbar-bg: #18181b;
+  --searchbar-fg: #fafafa;
+  --searchbar-shadow-color: #000;
+  --searchresults-header-fg: #a1a1aa;
+  --searchresults-border-color: #27272a;
+  --searchresults-li-bg: #18181b;
+  --search-mark-bg: #854d0e;
+
+  --color-scheme: dark;
+
+  --code-block-bg: #18181b;
+  --code-block-fg: #e4e4e7;
+  --heading-color: #fafafa;
+  --brand: #60a5fa;
+  --border-subtle: #27272a;
+  --muted: #a1a1aa;
+}
+
+/* —— Base —— */
 body {
   font-family: var(--main-font);
-  font-size: 1.7rem; /* ~17px */
+  font-size: 1.6rem;
   font-weight: 400;
-  letter-spacing: 0.01em;
-  line-height: 1.65;
+  letter-spacing: -0.011em;
+  line-height: 1.7;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
 
-/* —— Light (coredis Furo light) —— */
-.light {
-  --bg: #fcfbf8;
-  --fg: #3c3836;
-
-  --sidebar-bg: #f5f2eb;
-  --sidebar-fg: #3c3836;
-  --sidebar-non-existant: #a89984;
-  --sidebar-active: #8f3f71;
-  --sidebar-spacer: #ebe6dc;
-
-  --scrollbar: #bdae93;
-
-  --icons: #7c6f64;
-  --icons-hover: #3c3836;
-
-  --links: #076678;
-
-  --inline-code-color: #9d0006;
-
-  --theme-popup-bg: #fcfbf8;
-  --theme-popup-border: #d5c4a1;
-  --theme-hover: #f2eede;
-
-  --quote-bg: #f5f2eb;
-  --quote-border: #d5c4a1;
-
-  --warning-border: #d65d0e;
-
-  --table-border-color: #d5c4a1;
-  --table-header-bg: #ebe6dc;
-  --table-alternate-bg: #f8f5ef;
-
-  --searchbar-border-color: #d5c4a1;
-  --searchbar-bg: #fcfbf8;
-  --searchbar-fg: #3c3836;
-  --searchbar-shadow-color: #d5c4a1;
-  --searchresults-header-fg: #7c6f64;
-  --searchresults-border-color: #d5c4a1;
-  --searchresults-li-bg: #f5f2eb;
-  --search-mark-bg: #fabd2f;
-
-  --color-scheme: light;
-
-  /* custom extras used below */
-  --code-block-bg: #fbf1c7;
-  --code-block-fg: #3c3836;
-  --heading-color: #282828;
-  --brand: #8f3f71;
-  --border-subtle: #e0d5c0;
-}
-
-/* —— Dark (coredis Furo dark / gruvbox) —— */
-.navy,
-.coal,
-.ayu {
-  --bg: #3c3836;
-  --fg: #fbf1c7;
-
-  --sidebar-bg: #282828;
-  --sidebar-fg: #ebdbb2;
-  --sidebar-non-existant: #928374;
-  --sidebar-active: #b16286;
-  --sidebar-spacer: #3c3836;
-
-  --scrollbar: #928374;
-
-  --icons: #a89984;
-  --icons-hover: #fbf1c7;
-
-  --links: #458588;
-
-  --inline-code-color: #fb4934;
-
-  --theme-popup-bg: #282828;
-  --theme-popup-border: #504945;
-  --theme-hover: #3c3836;
-
-  --quote-bg: #282828;
-  --quote-border: #504945;
-
-  --warning-border: #fe8019;
-
-  --table-border-color: #504945;
-  --table-header-bg: #504945;
-  --table-alternate-bg: #32302f;
-
-  --searchbar-border-color: #504945;
-  --searchbar-bg: #282828;
-  --searchbar-fg: #fbf1c7;
-  --searchbar-shadow-color: #1d2021;
-  --searchresults-header-fg: #a89984;
-  --searchresults-border-color: #504945;
-  --searchresults-li-bg: #3c3836;
-  --search-mark-bg: #d79921;
-
-  --color-scheme: dark;
-
-  --code-block-bg: #282828;
-  --code-block-fg: #ebdbb2;
-  --heading-color: #fbf1c7;
-  --brand: #b16286;
-  --border-subtle: #504945;
-}
-
-/* —— Chrome / layout —— */
+/* —— Chrome —— */
 #menu-bar {
   border-bottom: 1px solid var(--border-subtle);
   box-shadow: none;
-  background: var(--bg);
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.menu-title {
+  font-weight: 600;
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+  color: var(--heading-color);
 }
 
 .sidebar {
   border-right: 1px solid var(--border-subtle);
-  font-size: 1.45rem; /* ~14.5px */
+  font-size: 1.4rem;
 }
 
 .sidebar .sidebar-scrollbox {
-  padding: 1.5rem 1rem 2.5rem;
+  padding: 1.6rem 1.2rem 3rem;
 }
 
 .chapter li.chapter-item {
-  margin: 0.2rem 0;
-  line-height: 1.45;
+  margin: 0.12rem 0;
+  line-height: 1.4;
 }
 
 .chapter li.part-title {
-  margin: 1.75rem 0 0.5rem;
-  font-size: 1.2rem; /* ~12px labels, still legible */
+  margin: 2rem 0 0.55rem;
+  padding: 0 0.7rem;
+  font-size: 1.15rem;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: var(--sidebar-non-existant);
+  color: var(--muted);
 }
 
 .chapter li a {
-  border-radius: 0.4rem;
-  padding: 0.4rem 0.7rem;
+  border-radius: 0.55rem;
+  padding: 0.45rem 0.75rem;
+  color: var(--sidebar-fg);
+  transition: background 0.12s ease, color 0.12s ease;
 }
 
 .chapter li a:hover {
   background: var(--theme-hover);
-  color: var(--sidebar-fg);
+  color: var(--heading-color);
 }
 
 .chapter li.active > a {
-  background: color-mix(in srgb, var(--sidebar-active) 14%, transparent);
-  color: var(--sidebar-active);
+  background: color-mix(in srgb, var(--brand) 12%, transparent);
+  color: var(--brand);
   font-weight: 600;
 }
 
-/* —— Content typography (rem ≈ 10px) —— */
+.chapter li ol.section {
+  margin-left: 0.4rem;
+  padding-left: 0.6rem;
+  border-left: 1px solid var(--border-subtle);
+}
+
+.chapter .toggle div {
+  color: var(--muted);
+}
+
+/* —— Content —— */
 .content {
-  font-size: 1.7rem; /* ~17px body */
-  line-height: 1.65;
+  font-size: 1.6rem;
+  line-height: 1.7;
+  color: var(--fg);
 }
 
 .content main {
-  padding-top: 2rem;
-  padding-bottom: 4rem;
+  padding-top: 2.4rem;
+  padding-bottom: 5rem;
 }
 
 .content h1,
@@ -193,118 +216,151 @@ body {
   font-family: var(--main-font);
   font-weight: 600;
   color: var(--heading-color);
-  letter-spacing: -0.015em;
+  letter-spacing: -0.025em;
   line-height: 1.25;
 }
 
 .content h1 {
-  font-size: 3rem; /* ~30px */
+  font-size: 3.2rem;
   font-weight: 700;
-  margin: 0 0 1.4rem;
-  padding-bottom: 0.6rem;
-  border-bottom: 1px solid var(--border-subtle);
+  margin: 0 0 1.2rem;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.content h1 + p {
+  font-size: 1.75rem;
+  color: var(--muted);
+  line-height: 1.55;
+  margin-top: 0;
+  margin-bottom: 2rem;
+  max-width: 62ch;
 }
 
 .content h2 {
-  font-size: 2.3rem; /* ~23px */
-  margin-top: 2.8rem;
+  font-size: 2.2rem;
+  margin-top: 3.2rem;
   margin-bottom: 1rem;
-  padding-bottom: 0.35rem;
+  padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--border-subtle);
 }
 
 .content h3 {
-  font-size: 1.9rem; /* ~19px */
-  margin-top: 2rem;
+  font-size: 1.75rem;
+  margin-top: 2.2rem;
+  margin-bottom: 0.75rem;
 }
 
 .content a {
+  color: var(--links);
   text-decoration: none;
   font-weight: 500;
 }
 
 .content a:hover {
   text-decoration: underline;
-  text-underline-offset: 0.15em;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
 }
 
 .content p,
 .content li {
-  max-width: 72ch;
+  max-width: 68ch;
+}
+
+.content li + li {
+  margin-top: 0.35rem;
 }
 
 .content blockquote {
-  border-radius: 0 0.5rem 0.5rem 0;
-  border-left-width: 3px;
-  border-left-color: var(--brand);
-  padding: 0.9rem 1.3rem;
-  margin: 1.5rem 0;
+  border-radius: 0 0.75rem 0.75rem 0;
+  border-left: 3px solid var(--brand);
+  background: var(--quote-bg);
+  padding: 1rem 1.4rem;
+  margin: 1.8rem 0;
   color: color-mix(in srgb, var(--fg) 88%, transparent);
 }
 
-/* —— Code —— */
-:not(pre) > .hljs,
-:not(pre) > code {
-  font-family: var(--mono-font);
-  font-size: 0.92em;
-  font-weight: 500;
-  padding: 0.15em 0.4em;
-  border-radius: 0.35rem;
-  background: color-mix(in srgb, var(--code-block-bg) 85%, var(--bg));
-  border: 1px solid var(--border-subtle);
-}
-
-pre {
-  border-radius: 0.6rem;
-  border: 1px solid var(--border-subtle);
-  background: var(--code-block-bg) !important;
-  box-shadow: none;
-}
-
-pre > .hljs,
-pre > code.hljs {
-  font-family: var(--mono-font);
-  font-size: 1.45rem; /* ~14.5px, readable */
-  line-height: 1.55;
-  background: var(--code-block-bg) !important;
-  color: var(--code-block-fg);
-  padding: 1.4rem 1.5rem;
-  border-radius: 0.6rem;
-}
-
-/* —— Tables —— */
+/* Lead / path tables look like cards */
 .content table {
   width: 100%;
   max-width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 1.5rem; /* ~15px */
-  margin: 1.5rem 0;
+  font-size: 1.45rem;
+  margin: 1.8rem 0;
   border: 1px solid var(--table-border-color);
-  border-radius: 0.6rem;
+  border-radius: 0.85rem;
   overflow: hidden;
+  background: var(--bg);
 }
 
 .content table th {
   font-weight: 600;
   text-align: left;
-  letter-spacing: 0.02em;
+  color: var(--muted);
+  font-size: 1.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--table-header-bg);
 }
 
 .content table th,
 .content table td {
-  padding: 0.75rem 1rem;
+  padding: 0.9rem 1.15rem;
   border-bottom: 1px solid var(--table-border-color);
+  vertical-align: top;
 }
 
 .content table tr:last-child td {
   border-bottom: none;
 }
 
-/* —— Nav chrome —— */
+.content table tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--table-alternate-bg) 55%, transparent);
+}
+
+.content table code {
+  white-space: nowrap;
+}
+
+/* —— Code —— */
+:not(pre) > .hljs,
+:not(pre) > code {
+  font-family: var(--mono-font);
+  font-size: 0.9em;
+  font-weight: 500;
+  padding: 0.12em 0.38em;
+  border-radius: 0.4rem;
+  color: var(--inline-code-color);
+  background: color-mix(in srgb, var(--code-block-bg) 100%, var(--bg));
+  border: 1px solid var(--border-subtle);
+}
+
+pre {
+  border-radius: 0.85rem;
+  border: 1px solid var(--border-subtle);
+  background: var(--code-block-bg) !important;
+  box-shadow: none;
+  margin: 1.6rem 0;
+}
+
+pre > .hljs,
+pre > code.hljs {
+  font-family: var(--mono-font);
+  font-size: 1.4rem;
+  line-height: 1.6;
+  background: var(--code-block-bg) !important;
+  color: var(--code-block-fg);
+  padding: 1.5rem 1.6rem;
+  border-radius: 0.85rem;
+}
+
+/* —— Nav —— */
 .nav-chapters {
   color: var(--icons);
-  opacity: 0.55;
+  opacity: 0.45;
+  transition: opacity 0.12s ease, color 0.12s ease;
 }
 
 .nav-chapters:hover {
@@ -312,8 +368,13 @@ pre > code.hljs {
   opacity: 1;
 }
 
-.menu-title {
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--brand);
+/* Search */
+#searchresults a {
+  border-radius: 0.5rem;
+}
+
+/* Slightly calmer header buttons */
+#menu-bar .icon-button:hover {
+  background: var(--theme-hover);
+  border-radius: 0.5rem;
 }

@@ -1,51 +1,74 @@
 # Getting started
 
-## Install
+## Requirements
 
-From a git checkout:
+- A recent Rust toolchain (workspace `rust-version` is **1.85**)
+- For product harnesses later: that product’s CLI on `PATH` and its normal login
+
+## Install `medon`
+
+From a git checkout of this repository:
 
 ```bash
 git clone https://github.com/indynull/automedon.git
 cd automedon
-cargo build -p automedon-cli --release
-cargo install --path crates/automedon-cli   # puts `medon` on PATH
+cargo install --path crates/automedon-cli
 ```
 
-Needs a recent Rust toolchain (`rust-version` in the workspace `Cargo.toml`).
-
-Check the binary:
+That installs the **`medon`** binary to Cargo’s bin directory (typically `~/.cargo/bin`). Ensure that directory is on your `PATH`.
 
 ```bash
+medon --version
 medon --help
-medon adapters
 ```
 
-## Run offline first
+### Run without installing
 
-The **mock** harness is in-process. No product CLI and no API keys.
+```bash
+cargo build -p automedon-cli --release
+./target/release/medon run examples/mock/smoke.rhai --print
+```
+
+## First offline runs
+
+The **mock** adapter is in-process. No product CLI and no API keys.
 
 ```bash
 medon run examples/mock/smoke.rhai --print
 medon run examples/mock/multi_turn.rhai --print
+medon run examples/mock/wait_hooks.rhai --print
 medon shot mock "hello" --scenario echo
 ```
 
-Without installing:
+List adapters and capability flags:
 
 ```bash
-cargo run -p automedon-cli -- run examples/mock/smoke.rhai --print
+medon adapters
 ```
 
-## Drive a real product CLI
+You should see a table of product harnesses (`grok`, `pi`, `claude`, …) plus infrastructure (`mock`, `generic`).
 
-Install that product’s CLI, complete its normal login, then:
+## First product run
+
+1. Install the product CLI (for example Grok Build) and complete its own authentication.  
+2. Confirm it works outside Automedon.  
+3. Run a harness example:
 
 ```bash
 medon run examples/harnesses/grok.rhai --print
 ```
 
-Catalog and layout: [Examples](examples.md). Per-product flags: [Adapters](adapters/index.md).
+More scripts: [Examples](examples.md). Per-product flags: [Adapters](adapters/index.md).
+
+## Develop in the tree
+
+```bash
+cargo run -p automedon-cli -- run examples/mock/smoke.rhai --print
+make check   # fmt, clippy, tests, coverage
+```
 
 ## Next
 
-Open [Write a script](first-script.md) to walk through multi-turn. Use [Command line](cli.md) for `run` / `eval` / `shot`.
+- [Write a script](first-script.md) — multi-turn pattern  
+- [Command line](cli.md) — `run`, `eval`, `shot`, `adapters`  
+- [How it works](concepts.md) — events, turns, capabilities  

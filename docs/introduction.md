@@ -1,26 +1,40 @@
 # Introduction
 
-**Automedon** is a library and CLI that drives **local** AI coding-agent programs (Grok Build, Claude Code, Codex, Pi, and others) through one session model.
+Automedon is a **driver** for local AI coding-agent CLIs. It does not replace Claude Code, Grok Build, Codex, or Pi — it spawns those tools, normalizes their streams, and gives you one API to wait, assert, and multi-turn.
 
-You write a short script or a few lines of Rust. Automedon spawns the real product CLI, normalizes its stream into events, and lets you wait and assert — multi-turn, tools, hooks, permissions — without a bespoke shell pipeline per vendor.
+Use it when you want **scripts or tests** that talk to a real agent the same way every time: launch, prompt, wait for a tool or a marker, resume the next turn, close.
 
 | Piece | Name |
 |-------|------|
-| Library | crate `automedon` |
+| Library | Rust crate `automedon` |
 | CLI | **`medon`** |
 | Scripts | Rhai (`.rhai`) or the Rust API |
 
-It does **not** reimplement agents, score answers with an LLM judge, or replace the product’s own login.
+## What you get
+
+- **One session model** — `prompt` → events → `expect` / `wait` → `await_turn` → next turn  
+- **Specialized adapters** — product-specific argv and JSON parsing live behind one interface  
+- **Offline mock** — full multi-turn / tools / hooks without a product CLI  
+- **Honest capabilities** — if interactive approve is not implemented, the call fails clearly  
+
+## What you still own
+
+- Installing and authenticating each product CLI  
+- Choosing models and provider settings for that product  
+- Deciding what “done” means in your script (text markers, tools, exit codes)
 
 ## Paths through this handbook
 
-| If you want to… | Start here |
-|-----------------|------------|
-| Install and run something offline | [Getting started](getting-started.md) |
+| Goal | Page |
+|------|------|
+| Install `medon` and run offline | [Getting started](getting-started.md) |
 | Learn the script pattern | [Write a script](first-script.md) |
-| Understand sessions, events, multi-turn | [How it works](concepts.md) |
-| Drive a specific product CLI | [Adapters](adapters/index.md) |
-| See what each driver supports | [Capability matrix](matrix.md) |
-| Copy a ready-made example | [Examples](examples.md) |
+| Understand sessions and events | [How it works](concepts.md) |
+| Full CLI reference | [Command line](cli.md) |
+| Full scripting surface | [Rhai scripts](rhai.md) |
+| Embed from Rust | [Rust API](rust-api.md) |
+| Pick a product adapter | [Adapters](adapters/index.md) |
+| See feature coverage | [Capability matrix](matrix.md) |
+| Copy ready-made scripts | [Examples](examples.md) |
 
-Internals (architecture, continuous integration) live under **Internals** in the sidebar — optional unless you are changing the tree.
+Internals (architecture, continuous integration) are under **Internals** in the sidebar.

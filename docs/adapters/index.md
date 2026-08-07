@@ -4,8 +4,10 @@ An **adapter** is the only place that knows a product’s binary name, flags, an
 
 ## Choosing a harness
 
-| Id | CLI on `PATH` | Multi-turn | Good first script |
-|----|---------------|------------|-------------------|
+Install the product CLI, complete **its** login, then point `launch("…")` at the adapter id.
+
+| Id | CLI on `PATH` | Multi-turn | First script |
+|----|---------------|------------|--------------|
 | `grok` | `grok` | `--resume`; optional ACP | [Grok](grok.md) · `examples/harnesses/grok.rhai` |
 | `pi` | `pi` | session id / continue | [Pi](pi.md) · `examples/harnesses/pi.rhai` |
 | `aider` | `aider` | chat-history restore | [Aider](aider.md) |
@@ -18,7 +20,7 @@ An **adapter** is the only place that knows a product’s binary name, flags, an
 | `mock` | (none) | scenarios | offline only — `examples/mock/` |
 | `generic` | your `bin` | process exit | escape hatch |
 
-Expand a product page in the sidebar for launch options and notes. Feature surface across all of them: [Capability matrix](../matrix.md).
+Expand a product page in the sidebar for launch options. Runtime flags: `medon adapters`. Full matrix: [Capability matrix](../matrix.md).
 
 ## Launch extras (shared map)
 

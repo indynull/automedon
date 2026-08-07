@@ -11,7 +11,7 @@ create-missing = false
 
 [output.html]
 default-theme = "light"
-preferred-dark-theme = "navy"
+preferred-dark-theme = "coal"
 git-repository-url = "https://github.com/indynull/automedon"
 edit-url-template = "https://github.com/indynull/automedon/edit/main/docs/{path}"
 site-url = "/automedon/"

@@ -50,7 +50,7 @@ enum Commands {
         /// Working directory.
         #[arg(long)]
         cwd: Option<PathBuf>,
-        /// Mock scenario (mock adapter only): echo | tools | think | error.
+        /// Mock scenario (mock only): echo, multi, tools, hooks, permission, plan, goal, think, error.
         #[arg(long)]
         scenario: Option<String>,
     },
@@ -59,10 +59,18 @@ enum Commands {
 #[tokio::main]
 async fn main() -> ExitCode {
     if let Err(e) = try_main().await {
-        eprintln!("automedon: {e:#}");
+        eprintln!("medon: {e:#}");
         return ExitCode::FAILURE;
     }
     ExitCode::SUCCESS
+}
+
+fn yn(b: bool) -> &'static str {
+    if b {
+        "yes"
+    } else {
+        "—"
+    }
 }
 
 async fn try_main() -> Result<()> {
@@ -74,20 +82,33 @@ async fn try_main() -> Result<()> {
     let cli = Cli::parse();
     match cli.command {
         Commands::Adapters => {
-            println!("# product harnesses (mock is test-only; generic is escape hatch)");
+            println!(
+                "{:<10} {:<7} {:<7} {:<7} {:<9} {:<5} {:<5}",
+                "NAME", "LAUNCH", "MULTI", "TOOLS", "SESSIONS", "ACP", "YOLO"
+            );
             for name in automedon::adapter::product_names() {
                 let a = automedon::resolve(name)?;
                 let c = a.capabilities();
                 println!(
-                    "{name:10} launch={} multi_turn={} stream_tools={} sessions={} acp={} yolo={}",
-                    c.launch, c.multi_turn, c.stream_tools, c.sessions, c.acp, c.yolo
+                    "{name:<10} {:<7} {:<7} {:<7} {:<9} {:<5} {:<5}",
+                    yn(c.launch),
+                    yn(c.multi_turn),
+                    yn(c.stream_tools),
+                    yn(c.sessions),
+                    yn(c.acp),
+                    yn(c.yolo),
                 );
             }
-            println!("# infrastructure");
+            println!();
+            println!("Infrastructure (not product delivery):");
             for name in ["mock", "generic"] {
                 let a = automedon::resolve(name)?;
                 let c = a.capabilities();
-                println!("{name:10} in_process={} launch={}", c.in_process, c.launch);
+                println!(
+                    "  {name:<8} in_process={} launch={}",
+                    yn(c.in_process),
+                    yn(c.launch)
+                );
             }
         }
         Commands::Run { script, print } => {
