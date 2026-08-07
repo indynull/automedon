@@ -12,7 +12,8 @@ medon run examples/harnesses/<name>.rhai --print
 |--------|---------|--------|
 | **`pi_workspace.rhai`** | `pi` | multi-turn workspace tools (`PI_WS_*`) |
 | **`grok_workspace.rhai`** | `grok` | multi-turn coding (`DONE:fib`, `GROK_WS_OK`) |
-| `claude.rhai` | `claude` | multi-turn resume |
+| `claude.rhai` | `claude` | multi-turn resume markers |
+| `claude_workspace.rhai` | `claude` | multi-turn + tools workspace |
 | `codex.rhai` | `codex` | exec json + resume |
 | `copilot.rhai` | `copilot` | JSONL + resume id |
 | `cursor.rhai` | `cursor` | stream-json + resume |

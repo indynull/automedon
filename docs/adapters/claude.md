@@ -8,7 +8,7 @@
 | Stream | `-p` + `--output-format stream-json` + `--verbose` + `--include-hook-events` |
 | Multi-turn | `--resume <id>` / `--continue` |
 | Yolo maps to | `--dangerously-skip-permissions` |
-| Example | `examples/harnesses/claude.rhai` |
+| Examples | `examples/harnesses/claude.rhai`, `claude_workspace.rhai` |
 
 ## Launch
 
@@ -23,6 +23,15 @@ Useful extras: `model`, `max_turns`, `allowed_tools`, `permission_mode`, `settin
 ```bash
 claude -p "hi" --output-format text   # product alone
 medon run examples/harnesses/claude.rhai --print
+# multi-turn + tools:
+medon run examples/harnesses/claude_workspace.rhai --print
 ```
 
-Expect `AUTOMEDON_T1` then `AUTOMEDON_T2`, and a `session_id` after turn 1 when the stream emits system init.
+Markers script: `AUTOMEDON_T1` then `AUTOMEDON_T2`, and a `session_id` after turn 1.
+Workspace script: tools + `CLAUDE_WS_*` markers; stable session id across turns.
+
+Live cargo tests (ignored by default):
+
+```bash
+AUTOMEDON_LIVE_CLAUDE=1 cargo test -p automedon --test live_harness live_claude -- --ignored
+```
