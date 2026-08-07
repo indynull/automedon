@@ -123,7 +123,7 @@ async fn try_main() -> Result<()> {
             println!();
             println!("Examples:  medon run examples/mock/smoke.rhai --print");
             println!("           medon run examples/harnesses/<name>.rhai --print");
-            println!("Docs:      handbook adapters + MATRIX.md");
+            println!("Docs:      handbook adapters + examples/harnesses/");
         }
         Commands::Run { script, print } => {
             if !script.exists() {

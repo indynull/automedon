@@ -23,7 +23,7 @@ medon adapters
 | `copilot` | `copilot` | `--resume=` / `--continue` | [Copilot](copilot.md) / `examples/harnesses/copilot.rhai` |
 | `generic` | `opts.bin` | process exit | escape hatch |
 
-Feature columns: [Capability matrix](../matrix.md). Multi-turn checks: [Smoke checklist](../qa-playbook.md).
+Multi-turn checks: [Smoke checklist](../qa-playbook.md). What each driver implements is on the adapter page and in `examples/harnesses/`.
 
 ## Launch extras
 

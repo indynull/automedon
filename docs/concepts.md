@@ -70,7 +70,7 @@ Each adapter advertises what its **driver implements**. Missing features fail cl
 medon adapters
 ```
 
-Full table: [Capability matrix](matrix.md).
+Per-adapter detail: [Adapters](adapters/index.md).
 
 ## Where product quirks live
 

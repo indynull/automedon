@@ -26,7 +26,6 @@
   - [OpenCode](adapters/opencode.md)
   - [Cursor](adapters/cursor.md)
   - [Gemini](adapters/gemini.md)
-- [Capability matrix](matrix.md)
 - [Examples](examples.md)
 
 # Internals

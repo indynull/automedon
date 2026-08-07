@@ -31,7 +31,7 @@ Same shape for every harness script:
 
 1. **One-turn text marker** -- launch, parse, turn end
 2. **Two-turn markers** (`AUTOMEDON_T1` then `AUTOMEDON_T2`) -- multi-turn / session resume
-3. **Optional tools** -- when the stream exposes tools (see MATRIX)
+3. **Optional tools** -- when the stream exposes tools (see adapter page and harness scripts)
 
 ```bash
 medon run examples/harnesses/<adapter>.rhai --print
@@ -121,7 +121,6 @@ internal mock adapter; that is not product proof.
 |------|------|
 | Install detail | [Getting started](getting-started.md) |
 | Adapter flags | [Adapters](adapters/index.md) |
-| Capability columns | [Capability matrix](matrix.md) |
 | Script language | [Rhai scripts](rhai.md) |
 | Wait patterns | [Waiting on the stream](waits.md) |
 | Failure table | [Troubleshooting](troubleshooting.md) |

@@ -35,7 +35,7 @@ It does not reimplement agents, score answers with a model judge, or log you int
 | `pi` | [Pi](adapters/pi.md) | [`examples/harnesses/pi_workspace.rhai`](examples.md) |
 | `copilot` | [GitHub Copilot CLI](adapters/copilot.md) | [`examples/harnesses/copilot.rhai`](examples.md) |
 
-Escape hatch: `generic` (you supply the binary). What each adapter implements today: [matrix](matrix.md).
+Escape hatch: `generic` (you supply the binary). What each adapter implements: [Adapters](adapters/index.md) and `examples/harnesses/`.
 
 ## Handbook map
 

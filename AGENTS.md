@@ -2,7 +2,7 @@
 
 Library and CLI to drive local AI coding harness processes.
 
-**1.0 product goal:** [GOAL.md](GOAL.md) — specialized drivers for Tier A/B harnesses; shared drive/assert API + per-harness adapters ([docs/architecture.md](docs/architecture.md)). Status surface: [MATRIX.md](MATRIX.md). Mock never counts as product delivery.
+**1.0 product goal:** [GOAL.md](GOAL.md) — specialized drivers for Tier A/B harnesses; shared drive/assert API + per-harness adapters ([docs/architecture.md](docs/architecture.md)). Mock never counts as product delivery. A published feature matrix is deferred until adapters are driven to a full shared surface; until then use per-adapter docs and live harness scripts.
 
 Handbook (mdBook): `docs/` + `book.toml` → `make book`. CI: `.github/workflows/`.
 

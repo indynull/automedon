@@ -58,4 +58,3 @@ Version field in workspace `Cargo.toml` should match the tag you cut.
 | CI | `.github/workflows/ci.yml` |
 | Pages | `.github/workflows/pages.yml` |
 | Releases | `.github/workflows/release.yml` |
-| Status matrix | `MATRIX.md` / [matrix.md](matrix.md) |

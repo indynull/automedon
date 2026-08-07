@@ -40,7 +40,7 @@ Drive local AI coding-agent CLIs through one event model: specialized adapters, 
 
 ## Architecture contract
 
-See [docs/architecture.md](docs/architecture.md) and [MATRIX.md](MATRIX.md).
+See [docs/architecture.md](docs/architecture.md). Per-adapter operator notes: [docs/adapters/](docs/adapters/).
 
 - General drive/assert API for concepts all harnesses share when present.
 - Specialized adapters only for binary discovery, argv, parse, encode, quirks.

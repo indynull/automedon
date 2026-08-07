@@ -6,7 +6,6 @@
 |--|--|
 | CLI | **`medon`** |
 | Docs | [Handbook](https://indynull.github.io/automedon/) / [Smoke checklist](docs/qa-playbook.md) |
-| Capabilities | [MATRIX.md](MATRIX.md) |
 | Architecture | [docs/architecture.md](docs/architecture.md) |
 
 ## Install
@@ -85,7 +84,7 @@ async fn main() -> automedon::Result<()> {
 medon adapters
 ```
 
-Full matrix: [MATRIX.md](MATRIX.md). Coverage of live product streams varies; alpha means expect gaps.
+Coverage of live product streams varies; alpha means expect gaps. Per-adapter notes: [docs/adapters/](docs/adapters/). Smoke scripts: [examples/harnesses/](examples/harnesses/).
 
 ## Develop
 

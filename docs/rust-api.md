@@ -110,4 +110,4 @@ let adapter = automedon::resolve("grok")?;
 let caps = adapter.capabilities();
 ```
 
-Same capability rules as Rhai. See [How it works](concepts.md) and [Capability matrix](matrix.md).
+Same capability rules as Rhai. See [How it works](concepts.md) and [Adapters](adapters/index.md).
