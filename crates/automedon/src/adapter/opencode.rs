@@ -28,8 +28,8 @@ impl Adapter for OpenCodeAdapter {
             streaming_json: true,
             yolo: true,
             permissions_preflight: true,
-            // `opencode acp` prepare kept only when live-proven; demote by default.
-            acp: false,
+            // First-party: `opencode acp` (JSON-RPC stdio).
+            acp: true,
             permissions: false,
             permissions_interactive: false,
             ..Default::default()
@@ -42,18 +42,27 @@ impl Adapter for OpenCodeAdapter {
         opts: &LaunchOptions,
         ctx: &TurnContext,
     ) -> Result<PreparedLaunch> {
-        if opts
+        let program = resolve_bin(opts, "opencode");
+        let use_acp = opts
             .extra
             .get("acp")
             .and_then(|v| v.as_bool())
-            .unwrap_or(false)
-        {
-            return Err(crate::error::Error::Other(
-                "opencode ACP is not implemented for live drive (use run --format json)".into(),
-            ));
+            .unwrap_or(false);
+        if use_acp {
+            return Ok(PreparedLaunch {
+                harness: "opencode".into(),
+                spawn: Some(SpawnSpec {
+                    program,
+                    args: vec!["acp".into()],
+                    cwd: opts.cwd.clone(),
+                    env: base_env(opts),
+                    retain_stdin: true,
+                }),
+                synthetic: None,
+                capabilities: self.capabilities(),
+                multi_turn: true,
+            });
         }
-
-        let program = resolve_bin(opts, "opencode");
 
         // `opencode run "prompt" --format json`
         let mut args = vec!["run".into(), prompt.to_string()];

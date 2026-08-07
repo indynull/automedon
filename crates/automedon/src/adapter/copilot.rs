@@ -37,8 +37,8 @@ impl Adapter for CopilotAdapter {
             permissions_preflight: true,
             permissions: false,
             permissions_interactive: false,
-            // `--acp` prepare exists but is not live-proven; demote until driven.
-            acp: false,
+            // First-party: `copilot --acp` (Agent Client Protocol server).
+            acp: true,
             ..Default::default()
         }
     }
@@ -50,15 +50,25 @@ impl Adapter for CopilotAdapter {
         ctx: &TurnContext,
     ) -> Result<PreparedLaunch> {
         let program = resolve_bin(opts, "copilot");
-        if opts
+        let use_acp = opts
             .extra
             .get("acp")
             .and_then(|v| v.as_bool())
-            .unwrap_or(false)
-        {
-            return Err(crate::error::Error::Other(
-                "copilot ACP is not implemented for live drive (use --output-format json)".into(),
-            ));
+            .unwrap_or(false);
+        if use_acp {
+            return Ok(PreparedLaunch {
+                harness: "copilot".into(),
+                spawn: Some(SpawnSpec {
+                    program,
+                    args: vec!["--acp".into()],
+                    cwd: opts.cwd.clone(),
+                    env: base_env(opts),
+                    retain_stdin: true,
+                }),
+                synthetic: None,
+                capabilities: self.capabilities(),
+                multi_turn: true,
+            });
         }
 
         // Prefer JSONL for structured text/tools/session (`--output-format json`).

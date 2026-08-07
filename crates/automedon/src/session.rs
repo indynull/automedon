@@ -294,23 +294,30 @@ impl Session {
         .await?;
         self.acp_wait_rpc(init_id).await?;
 
-        let auth_id = self.acp_next_id();
-        let method = self
+        // Optional authenticate. Default is skip: many agents (OpenCode, etc.)
+        // do not accept Grok's `cached_token` and injecting a soft-failed Error
+        // event would poison later waits. Set extra.acp_auth to force a method.
+        let auth_method = self
             .opts
             .extra
             .get("acp_auth")
             .and_then(|v| v.as_str())
-            .unwrap_or("cached_token");
-        self.acp_write_line(&acp::request(
-            auth_id,
-            "authenticate",
-            acp::authenticate_params(method),
-        ))
-        .await?;
-        // Auth may error on agents without it; ignore soft failures.
-        let _ = self.acp_wait_rpc(auth_id).await;
+            .filter(|s| !s.is_empty() && *s != "none" && *s != "skip")
+            .map(str::to_string);
+        if let Some(method) = auth_method {
+            let auth_id = self.acp_next_id();
+            self.acp_write_line(&acp::request(
+                auth_id,
+                "authenticate",
+                acp::authenticate_params(&method),
+            ))
+            .await?;
+            // Soft: do not fail the session if auth RPC errors.
+            let _ = self.acp_wait_rpc_soft(auth_id).await;
+        }
 
         let new_id = self.acp_next_id();
+        // OpenCode and others require a string cwd on session/new.
         let cwd = self
             .opts
             .cwd
@@ -320,11 +327,12 @@ impl Session {
                 std::env::current_dir()
                     .ok()
                     .map(|p| p.display().to_string())
-            });
+            })
+            .unwrap_or_else(|| ".".into());
         self.acp_write_line(&acp::request(
             new_id,
             "session/new",
-            acp::session_new_params(cwd.as_deref()),
+            acp::session_new_params(Some(cwd.as_str())),
         ))
         .await?;
         self.acp_wait_rpc(new_id).await?;
@@ -358,6 +366,15 @@ impl Session {
 
     /// Read stdout until a JSON-RPC response for `id` arrives; apply all events.
     async fn acp_wait_rpc(&mut self, id: u64) -> Result<()> {
+        self.acp_wait_rpc_inner(id, false).await
+    }
+
+    /// Like [`Self::acp_wait_rpc`] but RPC errors do not fail and Error events are not applied.
+    async fn acp_wait_rpc_soft(&mut self, id: u64) -> Result<()> {
+        self.acp_wait_rpc_inner(id, true).await
+    }
+
+    async fn acp_wait_rpc_inner(&mut self, id: u64, soft: bool) -> Result<()> {
         let deadline = Instant::now() + self.default_timeout;
         loop {
             let remaining = deadline.saturating_duration_since(Instant::now());
@@ -393,13 +410,14 @@ impl Session {
                 matched = acp::is_response_for(&v, id);
                 if matched {
                     if let Some(err) = v.get("error") {
-                        // authenticate may fail on some agents — surface only for required steps
                         let msg = err
                             .get("message")
                             .and_then(|m| m.as_str())
                             .unwrap_or("rpc error");
-                        if !msg.is_empty() && id > 2 {
-                            // session/new and later must succeed
+                        if soft {
+                            return Ok(());
+                        }
+                        if !msg.is_empty() {
                             return Err(Error::Other(format!("acp rpc {id}: {msg}")));
                         }
                     }
@@ -416,6 +434,13 @@ impl Session {
                 });
             } else {
                 for ev in events {
+                    // Soft RPC: never stash Error into the transcript.
+                    if soft && matches!(ev, Event::Error { .. }) {
+                        if matched {
+                            return Ok(());
+                        }
+                        continue;
+                    }
                     if let Event::SessionInfo { id: ref sid, .. } = ev {
                         self.acp_session_id = Some(sid.clone());
                     }

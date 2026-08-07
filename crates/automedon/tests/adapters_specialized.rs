@@ -87,12 +87,9 @@ fn gemini_prepare_stream_resume_acp() {
     assert!(args.iter().any(|x| x == "-y"));
 
     opts.extra.insert("acp".into(), json!(true));
-    let err = match a.prepare("p", &opts, &ctx_turn(1, None)) {
-        Err(e) => e,
-        Ok(_) => panic!("expected prepare error"),
-    };
-    assert!(err.to_string().contains("ACP is not implemented"));
-    assert!(!a.capabilities().acp);
+    let p = a.prepare("p", &opts, &ctx_turn(1, None)).unwrap();
+    assert!(p.spawn.unwrap().args.iter().any(|x| x == "--acp"));
+    assert!(a.capabilities().acp);
     assert!(a.capabilities().wait_hooks);
 }
 
@@ -285,13 +282,11 @@ fn copilot_prepare_acp_and_prompt() {
 
     let mut opts = LaunchOptions::default();
     opts.extra.insert("acp".into(), json!(true));
-    let err = match a.prepare("hi", &opts, &ctx_turn(1, None)) {
-        Err(e) => e,
-        Ok(_) => panic!("expected prepare error"),
-    };
-    assert!(err.to_string().contains("ACP is not implemented"));
-    assert!(!a.capabilities().acp);
-    assert!(a.capabilities().wait_hooks);
+    let p = a.prepare("hi", &opts, &ctx_turn(1, None)).unwrap();
+    let spawn = p.spawn.unwrap();
+    assert!(spawn.retain_stdin);
+    assert!(spawn.args.iter().any(|x| x == "--acp"));
+    assert!(a.capabilities().acp);
 
     let p = a
         .prepare(
@@ -717,18 +712,17 @@ fn gemini_approval_worktree_tools() {
 #[test]
 fn opencode_acp_and_model() {
     let a = OpenCodeAdapter;
-    assert!(!a.capabilities().acp);
+    assert!(a.capabilities().acp);
     assert!(a.capabilities().wait_hooks);
     let mut opts = LaunchOptions {
         model: Some("m1".into()),
         ..Default::default()
     };
     opts.extra.insert("acp".into(), json!(true));
-    let err = match a.prepare("x", &opts, &ctx_turn(1, None)) {
-        Err(e) => e,
-        Ok(_) => panic!("expected prepare error"),
-    };
-    assert!(err.to_string().contains("ACP is not implemented"));
+    let p = a.prepare("x", &opts, &ctx_turn(1, None)).unwrap();
+    let spawn = p.spawn.unwrap();
+    assert!(spawn.retain_stdin);
+    assert_eq!(spawn.args, vec!["acp".to_string()]);
     let opts = LaunchOptions {
         model: Some("m1".into()),
         ..Default::default()
