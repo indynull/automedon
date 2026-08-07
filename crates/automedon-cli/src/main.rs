@@ -90,8 +90,8 @@ async fn try_main() -> Result<()> {
                 "Product adapters (driver surface — still need product CLI + auth for live runs)\n"
             );
             println!(
-                "{:<10} {:<28} {:<6} {:<6} {:<6} {:<5}  {}",
-                "NAME", "BINARY", "LAUNCH", "MULTI", "TOOLS", "ACP", "MULTI-TURN"
+                "{:<10} {:<28} {:<6} {:<6} {:<6} {:<5}  MULTI-TURN",
+                "NAME", "BINARY", "LAUNCH", "MULTI", "TOOLS", "ACP"
             );
             for name in automedon::adapter::product_names() {
                 let kind = AdapterKind::parse(name)?;
