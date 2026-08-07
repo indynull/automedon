@@ -2,24 +2,24 @@
 
 @import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Fira+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap");
 
+/* mdBook sets html { font-size: 62.5% } so 1rem ≈ 10px. Do not override that. */
 :root {
-  --sidebar-width: 17.5rem;
-  --page-padding: 1.25rem;
-  --content-max-width: 48rem;
-  --menu-bar-height: 3.25rem;
+  --sidebar-width: 28rem;
+  --page-padding: 1.5rem;
+  --content-max-width: 84rem;
+  --menu-bar-height: 5rem;
   --main-font: "Fira Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono-font: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --code-font-size: 0.875em;
-}
-
-html {
-  font-size: 17px;
+  /* ~15–16px body on the 10px rem scale */
+  --code-font-size: 1.45rem;
 }
 
 body {
   font-family: var(--main-font);
+  font-size: 1.7rem; /* ~17px */
   font-weight: 400;
   letter-spacing: 0.01em;
+  line-height: 1.65;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
@@ -138,30 +138,30 @@ body {
 
 .sidebar {
   border-right: 1px solid var(--border-subtle);
-  font-size: 0.92rem;
+  font-size: 1.45rem; /* ~14.5px */
 }
 
 .sidebar .sidebar-scrollbox {
-  padding: 1rem 0.75rem 2rem;
+  padding: 1.5rem 1rem 2.5rem;
 }
 
 .chapter li.chapter-item {
-  margin: 0.15rem 0;
-  line-height: 1.4;
+  margin: 0.2rem 0;
+  line-height: 1.45;
 }
 
 .chapter li.part-title {
-  margin: 1.25rem 0 0.4rem;
-  font-size: 0.72rem;
+  margin: 1.75rem 0 0.5rem;
+  font-size: 1.2rem; /* ~12px labels, still legible */
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--sidebar-non-existant);
 }
 
 .chapter li a {
-  border-radius: 0.35rem;
-  padding: 0.28rem 0.55rem;
+  border-radius: 0.4rem;
+  padding: 0.4rem 0.7rem;
 }
 
 .chapter li a:hover {
@@ -175,15 +175,15 @@ body {
   font-weight: 600;
 }
 
-/* —— Content typography —— */
+/* —— Content typography (rem ≈ 10px) —— */
 .content {
-  font-size: 1rem;
+  font-size: 1.7rem; /* ~17px body */
   line-height: 1.65;
 }
 
 .content main {
-  padding-top: 1.5rem;
-  padding-bottom: 3rem;
+  padding-top: 2rem;
+  padding-bottom: 4rem;
 }
 
 .content h1,
@@ -198,24 +198,24 @@ body {
 }
 
 .content h1 {
-  font-size: 2rem;
+  font-size: 3rem; /* ~30px */
   font-weight: 700;
-  margin: 0 0 1rem;
-  padding-bottom: 0.5rem;
+  margin: 0 0 1.4rem;
+  padding-bottom: 0.6rem;
   border-bottom: 1px solid var(--border-subtle);
 }
 
 .content h2 {
-  font-size: 1.4rem;
-  margin-top: 2rem;
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.25rem;
+  font-size: 2.3rem; /* ~23px */
+  margin-top: 2.8rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.35rem;
   border-bottom: 1px solid var(--border-subtle);
 }
 
 .content h3 {
-  font-size: 1.15rem;
-  margin-top: 1.5rem;
+  font-size: 1.9rem; /* ~19px */
+  margin-top: 2rem;
 }
 
 .content a {
@@ -225,20 +225,20 @@ body {
 
 .content a:hover {
   text-decoration: underline;
-  text-underline-offset: 0.12em;
+  text-underline-offset: 0.15em;
 }
 
 .content p,
 .content li {
-  max-width: 70ch;
+  max-width: 72ch;
 }
 
 .content blockquote {
-  border-radius: 0 0.4rem 0.4rem 0;
+  border-radius: 0 0.5rem 0.5rem 0;
   border-left-width: 3px;
   border-left-color: var(--brand);
-  padding: 0.65rem 1rem;
-  margin: 1.25rem 0;
+  padding: 0.9rem 1.3rem;
+  margin: 1.5rem 0;
   color: color-mix(in srgb, var(--fg) 88%, transparent);
 }
 
@@ -246,16 +246,16 @@ body {
 :not(pre) > .hljs,
 :not(pre) > code {
   font-family: var(--mono-font);
-  font-size: 0.88em;
+  font-size: 0.92em;
   font-weight: 500;
-  padding: 0.12em 0.35em;
-  border-radius: 0.3rem;
+  padding: 0.15em 0.4em;
+  border-radius: 0.35rem;
   background: color-mix(in srgb, var(--code-block-bg) 85%, var(--bg));
   border: 1px solid var(--border-subtle);
 }
 
 pre {
-  border-radius: 0.5rem;
+  border-radius: 0.6rem;
   border: 1px solid var(--border-subtle);
   background: var(--code-block-bg) !important;
   box-shadow: none;
@@ -264,12 +264,12 @@ pre {
 pre > .hljs,
 pre > code.hljs {
   font-family: var(--mono-font);
-  font-size: 0.86em;
+  font-size: 1.45rem; /* ~14.5px, readable */
   line-height: 1.55;
   background: var(--code-block-bg) !important;
   color: var(--code-block-fg);
-  padding: 1rem 1.1rem;
-  border-radius: 0.5rem;
+  padding: 1.4rem 1.5rem;
+  border-radius: 0.6rem;
 }
 
 /* —— Tables —— */
@@ -278,10 +278,10 @@ pre > code.hljs {
   max-width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 0.92rem;
-  margin: 1.25rem 0;
+  font-size: 1.5rem; /* ~15px */
+  margin: 1.5rem 0;
   border: 1px solid var(--table-border-color);
-  border-radius: 0.5rem;
+  border-radius: 0.6rem;
   overflow: hidden;
 }
 
@@ -293,7 +293,7 @@ pre > code.hljs {
 
 .content table th,
 .content table td {
-  padding: 0.55rem 0.75rem;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--table-border-color);
 }
 
