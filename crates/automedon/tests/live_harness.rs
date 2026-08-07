@@ -360,6 +360,7 @@ async fn live_cursor_launch() {
     let mut s = Session::builder("cursor")
         .yolo(true)
         .timeout(Duration::from_secs(180))
+        .extra("binary", serde_json::json!("cursor-agent"))
         .build()
         .expect("build");
     s.prompt("Reply with exactly: AUTOMEDON_LIVE_T1")
@@ -368,6 +369,87 @@ async fn live_cursor_launch() {
     s.expect(Expect::text("AUTOMEDON_LIVE_T1").timeout(Duration::from_secs(120)))
         .await
         .expect("expect");
+    s.close().await.ok();
+}
+
+/// Multi-turn resume + tools against live Cursor (`cursor-agent`).
+#[tokio::test(flavor = "multi_thread")]
+#[ignore = "live: set AUTOMEDON_LIVE_CURSOR=1"]
+async fn live_cursor_multi_turn_and_tools() {
+    if skip_if("cursor", &["cursor-agent"]) {
+        return;
+    }
+    let mut s = Session::builder("cursor")
+        .yolo(true)
+        .timeout(Duration::from_secs(300))
+        .extra("binary", serde_json::json!("cursor-agent"))
+        .build()
+        .expect("build");
+
+    s.prompt(
+        "Create examples/automedon_demo if needed. Write examples/automedon_demo/live_cursor.txt \
+         with exactly one line: LIVE_CURSOR_T1. Use a write/edit tool. End with LIVE_CURSOR_T1.",
+    )
+    .await
+    .expect("prompt t1");
+    s.wait(automedon::Wait::tool_any().timeout(Duration::from_secs(240)))
+        .await
+        .expect("tool t1");
+    // Prefer named edit tool when present
+    let _ = s
+        .expect(Expect::tool("edit").timeout(Duration::from_secs(1)))
+        .await;
+    s.expect(Expect::text("LIVE_CURSOR_T1").timeout(Duration::from_secs(240)))
+        .await
+        .expect("text t1");
+    s.await_turn().await.expect("await t1");
+    let sid1 = s.session_id().map(str::to_string);
+    assert!(
+        sid1.as_ref().is_some_and(|id| !id.is_empty()),
+        "expected session id after turn 1"
+    );
+    assert!(
+        !s.transcript().tools().is_empty(),
+        "expected tool activity on turn 1, tools={:?}",
+        s.transcript()
+            .tools()
+            .iter()
+            .map(|t| t.name.as_str())
+            .collect::<Vec<_>>()
+    );
+    assert!(
+        s.transcript().tools().iter().any(|t| t.name != "unknown"),
+        "tool names should not all be unknown: {:?}",
+        s.transcript()
+            .tools()
+            .iter()
+            .map(|t| &t.name)
+            .collect::<Vec<_>>()
+    );
+
+    s.prompt(
+        "Continue same session. Read examples/automedon_demo/live_cursor.txt, append line \
+         LIVE_CURSOR_T2, reply with file contents, end with LIVE_CURSOR_OK.",
+    )
+    .await
+    .expect("prompt t2");
+    s.wait(automedon::Wait::tool_any().timeout(Duration::from_secs(240)))
+        .await
+        .expect("tool t2");
+    s.expect(Expect::text("LIVE_CURSOR_OK").timeout(Duration::from_secs(240)))
+        .await
+        .expect("text t2");
+    s.await_turn().await.expect("await t2");
+
+    let text = s.text().to_string();
+    assert!(
+        text.contains("LIVE_CURSOR_T1") && text.contains("LIVE_CURSOR_OK"),
+        "multi-turn text missing: {text}"
+    );
+    assert!(s.turn() >= 2, "turn={}", s.turn());
+    if let (Some(a), Some(b)) = (sid1.as_deref(), s.session_id()) {
+        assert_eq!(a, b, "session id should be stable across turns when known");
+    }
     s.close().await.ok();
 }
 

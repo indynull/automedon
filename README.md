@@ -75,7 +75,7 @@ async fn main() -> automedon::Result<()> {
 | `gemini` | `gemini` / `agy` | stream-json + `-r` |
 | `opencode` | `opencode` | `run --format json` + session |
 | `grok` | `grok` | streaming-json + resume; ACP optional |
-| `cursor` | `agent` / `cursor-agent` | stream-json + resume |
+| `cursor` | `cursor-agent` | stream-json + resume |
 | `aider` | `aider` | chat-history restore |
 | `pi` | `pi` | json mode + session id |
 | `copilot` | `copilot` | JSONL + `--resume=` |

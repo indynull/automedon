@@ -35,7 +35,7 @@ What each specialized driver **implements** in Automedon (prepare / parse / cont
 | `claude` | yes | yes | yes | yes | yes | yes | no | `--include-hook-events` with stream-json |
 | `codex` | yes | yes | yes | no | yes | yes | optional | `exec --json` / `exec resume`; thread/item frames |
 | `opencode` | yes | yes | yes | no | yes | yes | optional | `run --format json`; sessionID on frames |
-| `cursor` | yes | yes | yes | no | yes | yes | no | `cursor-agent`/`agent` print + stream-json |
+| `cursor` | yes | yes | yes | no | yes | yes | no | Prefer `cursor-agent` (not bare `agent`); stream-json tools `edit`/`shell` |
 | `gemini` | yes | yes | yes | no | yes | yes | optional | `-o stream-json`; prefers `agy` when present |
 
 Interactive mid-flight permission / plan encode: **mock** only (no product control channel implemented).
