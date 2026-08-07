@@ -1005,7 +1005,9 @@ fn real_stream_fixtures_claude_codex_opencode_copilot_pi() {
 
     // Codex exec --json
     let codex = CodexAdapter;
-    let th = codex.parse_line(r#"{"type":"thread.started","thread_id":"019fd9f5-c0b7-77c2-b57f-99880d00fd83"}"#);
+    let th = codex.parse_line(
+        r#"{"type":"thread.started","thread_id":"019fd9f5-c0b7-77c2-b57f-99880d00fd83"}"#,
+    );
     assert!(th.iter().any(
         |e| matches!(e, Event::SessionInfo { id, .. } if id == "019fd9f5-c0b7-77c2-b57f-99880d00fd83")
     ));
@@ -1031,7 +1033,9 @@ fn real_stream_fixtures_claude_codex_opencode_copilot_pi() {
     let text = oc.parse_line(
         r#"{"type":"text","sessionID":"ses_02609fb1fffeo0q04BdpZ7eR2p","part":{"type":"text","text":"Hi"}}"#,
     );
-    assert!(text.iter().any(|e| matches!(e, Event::TextDelta { text } if text == "Hi")));
+    assert!(text
+        .iter()
+        .any(|e| matches!(e, Event::TextDelta { text } if text == "Hi")));
 
     // Copilot --output-format json (real order: delta → message → turn_end → result).
     let cp = CopilotAdapter;

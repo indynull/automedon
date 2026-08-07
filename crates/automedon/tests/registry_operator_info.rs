@@ -15,10 +15,7 @@ fn every_product_has_binary_and_multi_turn_summary() {
         );
         let mt = kind.multi_turn_summary();
         assert!(!mt.is_empty(), "{name} empty multi_turn_summary");
-        assert!(
-            mt.len() > 4,
-            "{name} multi_turn_summary too short: {mt:?}"
-        );
+        assert!(mt.len() > 4, "{name} multi_turn_summary too short: {mt:?}");
     }
 }
 

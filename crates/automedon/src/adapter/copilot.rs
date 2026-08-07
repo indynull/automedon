@@ -358,9 +358,7 @@ mod tests {
     #[test]
     fn parse_jsonl_message_and_result_session() {
         let a = CopilotAdapter;
-        let ev = a.parse_line(
-            r#"{"type":"assistant.message_delta","data":{"deltaContent":"HI"}}"#,
-        );
+        let ev = a.parse_line(r#"{"type":"assistant.message_delta","data":{"deltaContent":"HI"}}"#);
         assert!(matches!(ev.first(), Some(Event::TextDelta { text }) if text == "HI"));
         // Full message content must not re-emit text (would double HI).
         let ev = a.parse_line(
@@ -400,7 +398,10 @@ mod tests {
             }
         }
         assert_eq!(text, "HI_ONLY", "must not double full message content");
-        assert_eq!(turn_completes, 1, "TurnComplete only from result, not turn_end");
+        assert_eq!(
+            turn_completes, 1,
+            "TurnComplete only from result, not turn_end"
+        );
         assert_eq!(
             session.as_deref(),
             Some("a81b42ef-a1ea-4b38-93de-8f8bf1287571")
@@ -414,8 +415,9 @@ mod tests {
             r#"{"type":"assistant.message","data":{"content":"running","toolRequests":[{"id":"t1","name":"bash","arguments":{"c":"ls"}}]}}"#,
         );
         assert!(
-            ev.iter()
-                .any(|e| matches!(e, Event::ToolCall { id, name, .. } if id == "t1" && name == "bash")),
+            ev.iter().any(
+                |e| matches!(e, Event::ToolCall { id, name, .. } if id == "t1" && name == "bash")
+            ),
             "{ev:?}"
         );
         assert!(
@@ -476,7 +478,9 @@ mod tests {
             )
             .unwrap();
         let args = p.spawn.unwrap().args;
-        assert!(args.windows(2).any(|w| w[0] == "--output-format" && w[1] == "json"));
+        assert!(args
+            .windows(2)
+            .any(|w| w[0] == "--output-format" && w[1] == "json"));
         assert!(args.iter().any(|a| a == "--resume=sess-1"));
         assert!(args.iter().any(|a| a == "--allow-all"));
     }

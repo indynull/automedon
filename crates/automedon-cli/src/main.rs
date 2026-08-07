@@ -86,7 +86,9 @@ async fn try_main() -> Result<()> {
     match cli.command {
         Commands::Adapters => {
             use automedon::adapter::AdapterKind;
-            println!("Product adapters (driver surface — still need product CLI + auth for live runs)\n");
+            println!(
+                "Product adapters (driver surface — still need product CLI + auth for live runs)\n"
+            );
             println!(
                 "{:<10} {:<28} {:<6} {:<6} {:<6} {:<5}  {}",
                 "NAME", "BINARY", "LAUNCH", "MULTI", "TOOLS", "ACP", "MULTI-TURN"
