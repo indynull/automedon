@@ -92,7 +92,7 @@ impl Adapter for GrokAdapter {
             .filter(|s| !s.is_empty())
         {
             // Explicit resume/session on first prompt when operator supplies an id.
-            if opts.extra.get("resume").is_some() {
+            if opts.extra.contains_key("resume") {
                 args.push("--resume".into());
                 args.push(id.into());
             } else {
