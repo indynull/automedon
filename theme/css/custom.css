@@ -1,0 +1,319 @@
+/* Automedon handbook — Furo/coredis-inspired theme (Fira + gruvbox accents). */
+
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Fira+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap");
+
+:root {
+  --sidebar-width: 17.5rem;
+  --page-padding: 1.25rem;
+  --content-max-width: 48rem;
+  --menu-bar-height: 3.25rem;
+  --main-font: "Fira Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono-font: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --code-font-size: 0.875em;
+}
+
+html {
+  font-size: 17px;
+}
+
+body {
+  font-family: var(--main-font);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* —— Light (coredis Furo light) —— */
+.light {
+  --bg: #fcfbf8;
+  --fg: #3c3836;
+
+  --sidebar-bg: #f5f2eb;
+  --sidebar-fg: #3c3836;
+  --sidebar-non-existant: #a89984;
+  --sidebar-active: #8f3f71;
+  --sidebar-spacer: #ebe6dc;
+
+  --scrollbar: #bdae93;
+
+  --icons: #7c6f64;
+  --icons-hover: #3c3836;
+
+  --links: #076678;
+
+  --inline-code-color: #9d0006;
+
+  --theme-popup-bg: #fcfbf8;
+  --theme-popup-border: #d5c4a1;
+  --theme-hover: #f2eede;
+
+  --quote-bg: #f5f2eb;
+  --quote-border: #d5c4a1;
+
+  --warning-border: #d65d0e;
+
+  --table-border-color: #d5c4a1;
+  --table-header-bg: #ebe6dc;
+  --table-alternate-bg: #f8f5ef;
+
+  --searchbar-border-color: #d5c4a1;
+  --searchbar-bg: #fcfbf8;
+  --searchbar-fg: #3c3836;
+  --searchbar-shadow-color: #d5c4a1;
+  --searchresults-header-fg: #7c6f64;
+  --searchresults-border-color: #d5c4a1;
+  --searchresults-li-bg: #f5f2eb;
+  --search-mark-bg: #fabd2f;
+
+  --color-scheme: light;
+
+  /* custom extras used below */
+  --code-block-bg: #fbf1c7;
+  --code-block-fg: #3c3836;
+  --heading-color: #282828;
+  --brand: #8f3f71;
+  --border-subtle: #e0d5c0;
+}
+
+/* —— Dark (coredis Furo dark / gruvbox) —— */
+.navy,
+.coal,
+.ayu {
+  --bg: #3c3836;
+  --fg: #fbf1c7;
+
+  --sidebar-bg: #282828;
+  --sidebar-fg: #ebdbb2;
+  --sidebar-non-existant: #928374;
+  --sidebar-active: #b16286;
+  --sidebar-spacer: #3c3836;
+
+  --scrollbar: #928374;
+
+  --icons: #a89984;
+  --icons-hover: #fbf1c7;
+
+  --links: #458588;
+
+  --inline-code-color: #fb4934;
+
+  --theme-popup-bg: #282828;
+  --theme-popup-border: #504945;
+  --theme-hover: #3c3836;
+
+  --quote-bg: #282828;
+  --quote-border: #504945;
+
+  --warning-border: #fe8019;
+
+  --table-border-color: #504945;
+  --table-header-bg: #504945;
+  --table-alternate-bg: #32302f;
+
+  --searchbar-border-color: #504945;
+  --searchbar-bg: #282828;
+  --searchbar-fg: #fbf1c7;
+  --searchbar-shadow-color: #1d2021;
+  --searchresults-header-fg: #a89984;
+  --searchresults-border-color: #504945;
+  --searchresults-li-bg: #3c3836;
+  --search-mark-bg: #d79921;
+
+  --color-scheme: dark;
+
+  --code-block-bg: #282828;
+  --code-block-fg: #ebdbb2;
+  --heading-color: #fbf1c7;
+  --brand: #b16286;
+  --border-subtle: #504945;
+}
+
+/* —— Chrome / layout —— */
+#menu-bar {
+  border-bottom: 1px solid var(--border-subtle);
+  box-shadow: none;
+  background: var(--bg);
+}
+
+.sidebar {
+  border-right: 1px solid var(--border-subtle);
+  font-size: 0.92rem;
+}
+
+.sidebar .sidebar-scrollbox {
+  padding: 1rem 0.75rem 2rem;
+}
+
+.chapter li.chapter-item {
+  margin: 0.15rem 0;
+  line-height: 1.4;
+}
+
+.chapter li.part-title {
+  margin: 1.25rem 0 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sidebar-non-existant);
+}
+
+.chapter li a {
+  border-radius: 0.35rem;
+  padding: 0.28rem 0.55rem;
+}
+
+.chapter li a:hover {
+  background: var(--theme-hover);
+  color: var(--sidebar-fg);
+}
+
+.chapter li.active > a {
+  background: color-mix(in srgb, var(--sidebar-active) 14%, transparent);
+  color: var(--sidebar-active);
+  font-weight: 600;
+}
+
+/* —— Content typography —— */
+.content {
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.content main {
+  padding-top: 1.5rem;
+  padding-bottom: 3rem;
+}
+
+.content h1,
+.content h2,
+.content h3,
+.content h4 {
+  font-family: var(--main-font);
+  font-weight: 600;
+  color: var(--heading-color);
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+}
+
+.content h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.content h2 {
+  font-size: 1.4rem;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.content h3 {
+  font-size: 1.15rem;
+  margin-top: 1.5rem;
+}
+
+.content a {
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.content a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+.content p,
+.content li {
+  max-width: 70ch;
+}
+
+.content blockquote {
+  border-radius: 0 0.4rem 0.4rem 0;
+  border-left-width: 3px;
+  border-left-color: var(--brand);
+  padding: 0.65rem 1rem;
+  margin: 1.25rem 0;
+  color: color-mix(in srgb, var(--fg) 88%, transparent);
+}
+
+/* —— Code —— */
+:not(pre) > .hljs,
+:not(pre) > code {
+  font-family: var(--mono-font);
+  font-size: 0.88em;
+  font-weight: 500;
+  padding: 0.12em 0.35em;
+  border-radius: 0.3rem;
+  background: color-mix(in srgb, var(--code-block-bg) 85%, var(--bg));
+  border: 1px solid var(--border-subtle);
+}
+
+pre {
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-subtle);
+  background: var(--code-block-bg) !important;
+  box-shadow: none;
+}
+
+pre > .hljs,
+pre > code.hljs {
+  font-family: var(--mono-font);
+  font-size: 0.86em;
+  line-height: 1.55;
+  background: var(--code-block-bg) !important;
+  color: var(--code-block-fg);
+  padding: 1rem 1.1rem;
+  border-radius: 0.5rem;
+}
+
+/* —— Tables —— */
+.content table {
+  width: 100%;
+  max-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.92rem;
+  margin: 1.25rem 0;
+  border: 1px solid var(--table-border-color);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.content table th {
+  font-weight: 600;
+  text-align: left;
+  letter-spacing: 0.02em;
+}
+
+.content table th,
+.content table td {
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid var(--table-border-color);
+}
+
+.content table tr:last-child td {
+  border-bottom: none;
+}
+
+/* —— Nav chrome —— */
+.nav-chapters {
+  color: var(--icons);
+  opacity: 0.55;
+}
+
+.nav-chapters:hover {
+  color: var(--brand);
+  opacity: 1;
+}
+
+.menu-title {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--brand);
+}
