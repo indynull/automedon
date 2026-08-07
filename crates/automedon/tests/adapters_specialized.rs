@@ -1033,21 +1033,30 @@ fn real_stream_fixtures_claude_codex_opencode_copilot_pi() {
     );
     assert!(text.iter().any(|e| matches!(e, Event::TextDelta { text } if text == "Hi")));
 
-    // Copilot --output-format json
+    // Copilot --output-format json (real order: delta → message → turn_end → result).
     let cp = CopilotAdapter;
-    let delta = cp.parse_line(
+    let mut joined = String::new();
+    let mut n_tc = 0usize;
+    let mut sid = None;
+    for line in [
         r#"{"type":"assistant.message_delta","data":{"deltaContent":"HI_ONLY"}}"#,
-    );
-    assert!(matches!(
-        delta.first(),
-        Some(Event::TextDelta { text }) if text == "HI_ONLY"
-    ));
-    let end = cp.parse_line(
+        r#"{"type":"assistant.message","data":{"content":"HI_ONLY","toolRequests":[{"id":"t1","name":"bash","arguments":{"c":"echo"}}]}}"#,
+        r#"{"type":"assistant.turn_end","data":{"turnId":"0"}}"#,
         r#"{"type":"result","sessionId":"a81b42ef-a1ea-4b38-93de-8f8bf1287571","exitCode":0}"#,
-    );
-    assert!(end.iter().any(
-        |e| matches!(e, Event::SessionInfo { id, .. } if id == "a81b42ef-a1ea-4b38-93de-8f8bf1287571")
-    ));
+    ] {
+        for e in cp.parse_line(line) {
+            match e {
+                Event::TextDelta { text } => joined.push_str(&text),
+                Event::TurnComplete { .. } => n_tc += 1,
+                Event::SessionInfo { id, .. } => sid = Some(id),
+                Event::ToolCall { name, .. } => assert_eq!(name, "bash"),
+                _ => {}
+            }
+        }
+    }
+    assert_eq!(joined, "HI_ONLY");
+    assert_eq!(n_tc, 1);
+    assert_eq!(sid.as_deref(), Some("a81b42ef-a1ea-4b38-93de-8f8bf1287571"));
 
     // Pi --mode json
     let pi = PiAdapter;

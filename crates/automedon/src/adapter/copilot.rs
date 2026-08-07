@@ -141,6 +141,8 @@ fn parse_copilot_json(value: &Value) -> Vec<Event> {
     let data = value.get("data").unwrap_or(value);
 
     match ty {
+        // Live JSONL always streams deltas then a final assistant.message with full content.
+        // Emit TextDelta only from deltas so text is not doubled (HI_ONLYHI_ONLY).
         "assistant.message_delta" => {
             let text = data
                 .get("deltaContent")
@@ -155,15 +157,8 @@ fn parse_copilot_json(value: &Value) -> Vec<Event> {
             }
         }
         "assistant.message" => {
+            // Full `content` already arrived via message_delta — only surface toolRequests here.
             let mut out = Vec::new();
-            if let Some(text) = data.get("content").and_then(|t| t.as_str()) {
-                if !text.is_empty() {
-                    out.push(Event::TextDelta {
-                        text: text.to_string(),
-                    });
-                }
-            }
-            // toolRequests: [{name, id, arguments}, …]
             if let Some(arr) = data.get("toolRequests").and_then(|a| a.as_array()) {
                 for tr in arr {
                     let id = tr
@@ -201,19 +196,8 @@ fn parse_copilot_json(value: &Value) -> Vec<Event> {
                 vec![Event::ThinkingDelta { text }]
             }
         }
-        "assistant.reasoning" => {
-            let text = data
-                .get("content")
-                .or_else(|| data.get("reasoningText"))
-                .and_then(|t| t.as_str())
-                .unwrap_or("")
-                .to_string();
-            if text.is_empty() {
-                Vec::new()
-            } else {
-                vec![Event::ThinkingDelta { text }]
-            }
-        }
+        // Full reasoning body follows deltas — do not re-emit as ThinkingDelta.
+        "assistant.reasoning" => Vec::new(),
         "assistant.turn_start" => vec![Event::TurnStart {
             turn: data
                 .get("turnId")
@@ -221,15 +205,10 @@ fn parse_copilot_json(value: &Value) -> Vec<Event> {
                 .and_then(|s| s.parse().ok())
                 .unwrap_or(0),
         }],
-        "assistant.turn_end" => vec![Event::TurnComplete {
-            turn: data
-                .get("turnId")
-                .and_then(|v| v.as_str())
-                .and_then(|s| s.parse().ok())
-                .unwrap_or(1),
-            stop_reason: None,
-        }],
-        // Final frame: session id for multi-turn resume.
+        // Live order: turn_end then result (with sessionId). TurnComplete only on result
+        // so SessionInfo is applied before await_turn returns (see Session::await_turn).
+        "assistant.turn_end" => Vec::new(),
+        // Final frame: session id for multi-turn resume, then terminal turn complete.
         "result" => {
             let mut out = Vec::new();
             if let Some(sid) = value
@@ -383,6 +362,11 @@ mod tests {
             r#"{"type":"assistant.message_delta","data":{"deltaContent":"HI"}}"#,
         );
         assert!(matches!(ev.first(), Some(Event::TextDelta { text }) if text == "HI"));
+        // Full message content must not re-emit text (would double HI).
+        let ev = a.parse_line(
+            r#"{"type":"assistant.message","data":{"content":"HI","toolRequests":[]}}"#,
+        );
+        assert!(ev.iter().all(|e| !matches!(e, Event::TextDelta { .. })));
         let ev = a.parse_line(
             r#"{"type":"result","sessionId":"a81b42ef-a1ea-4b38-93de-8f8bf1287571","exitCode":0}"#,
         );
@@ -390,6 +374,87 @@ mod tests {
             |e| matches!(e, Event::SessionInfo { id, .. } if id == "a81b42ef-a1ea-4b38-93de-8f8bf1287571")
         ));
         assert!(ev.iter().any(|e| matches!(e, Event::TurnComplete { .. })));
+    }
+
+    #[test]
+    fn live_order_deltas_then_result_one_turn_complete_and_session() {
+        // Shape from copilot --output-format json capture (delta → message → turn_end → result).
+        let a = CopilotAdapter;
+        let mut text = String::new();
+        let mut turn_completes = 0usize;
+        let mut session: Option<String> = None;
+        let lines = [
+            r#"{"type":"assistant.message_delta","data":{"deltaContent":"HI_ONLY"}}"#,
+            r#"{"type":"assistant.message","data":{"content":"HI_ONLY","toolRequests":[]}}"#,
+            r#"{"type":"assistant.turn_end","data":{"turnId":"0"}}"#,
+            r#"{"type":"result","sessionId":"a81b42ef-a1ea-4b38-93de-8f8bf1287571","exitCode":0}"#,
+        ];
+        for line in lines {
+            for e in a.parse_line(line) {
+                match e {
+                    Event::TextDelta { text: t } => text.push_str(&t),
+                    Event::TurnComplete { .. } => turn_completes += 1,
+                    Event::SessionInfo { id, .. } => session = Some(id),
+                    _ => {}
+                }
+            }
+        }
+        assert_eq!(text, "HI_ONLY", "must not double full message content");
+        assert_eq!(turn_completes, 1, "TurnComplete only from result, not turn_end");
+        assert_eq!(
+            session.as_deref(),
+            Some("a81b42ef-a1ea-4b38-93de-8f8bf1287571")
+        );
+    }
+
+    #[test]
+    fn tool_requests_and_execution_frames() {
+        let a = CopilotAdapter;
+        let ev = a.parse_line(
+            r#"{"type":"assistant.message","data":{"content":"running","toolRequests":[{"id":"t1","name":"bash","arguments":{"c":"ls"}}]}}"#,
+        );
+        assert!(
+            ev.iter()
+                .any(|e| matches!(e, Event::ToolCall { id, name, .. } if id == "t1" && name == "bash")),
+            "{ev:?}"
+        );
+        assert!(
+            !ev.iter().any(|e| matches!(e, Event::TextDelta { .. })),
+            "message content must not TextDelta when tools present either"
+        );
+        let ev = a.parse_line(
+            r#"{"type":"tool.execution_start","data":{"id":"t1","name":"bash","arguments":{"c":"ls"}}}"#,
+        );
+        assert!(matches!(ev.first(), Some(Event::ToolCall { name, .. }) if name == "bash"));
+        let ev = a.parse_line(
+            r#"{"type":"tool.execution_end","data":{"id":"t1","name":"bash","output":"ok","isError":false}}"#,
+        );
+        assert!(matches!(
+            ev.first(),
+            Some(Event::ToolResult {
+                is_error: false,
+                output,
+                ..
+            }) if output == "ok"
+        ));
+    }
+
+    #[test]
+    fn reasoning_delta_not_doubled_by_full_reasoning() {
+        let a = CopilotAdapter;
+        let mut thinking = String::new();
+        for line in [
+            r#"{"type":"assistant.reasoning_delta","data":{"deltaContent":"think "}}"#,
+            r#"{"type":"assistant.reasoning_delta","data":{"deltaContent":"more"}}"#,
+            r#"{"type":"assistant.reasoning","data":{"content":"think more","reasoningText":"think more"}}"#,
+        ] {
+            for e in a.parse_line(line) {
+                if let Event::ThinkingDelta { text } = e {
+                    thinking.push_str(&text);
+                }
+            }
+        }
+        assert_eq!(thinking, "think more");
     }
 
     #[test]
