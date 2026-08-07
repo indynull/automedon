@@ -315,6 +315,33 @@ fn grok_acp_prepare() {
 }
 
 #[test]
+fn grok_parse_live_tool_name_and_result() {
+    let a = GrokAdapter;
+    // Live Grok streaming-json: toolName + rawInput (not name/input).
+    let start = a.parse_line(
+        r#"{"type":"tool_call","toolCallId":"c1","title":"run_terminal_command","toolName":"run_terminal_command","rawInput":{"command":"echo hi"},"status":"pending"}"#,
+    );
+    assert!(
+        matches!(start.first(), Some(Event::ToolCall { name, .. }) if name == "run_terminal_command")
+    );
+    assert!(matches!(
+        start.first(),
+        Some(Event::ToolCall { input, .. }) if input.get("command").and_then(|v| v.as_str()) == Some("echo hi")
+    ));
+    let mid = a.parse_line(
+        r#"{"type":"tool_call_update","toolCallId":"c1","status":"in_progress","content":[]}"#,
+    );
+    assert!(mid.is_empty());
+    let done = a.parse_line(
+        r#"{"type":"tool_call_update","toolCallId":"c1","status":"completed","content":[{"type":"content","content":{"type":"text","text":"hi\n"}}]}"#,
+    );
+    assert!(matches!(
+        done.first(),
+        Some(Event::ToolResult { output, is_error: false, .. }) if output.contains("hi")
+    ));
+}
+
+#[test]
 fn claude_prepare_resume_tools() {
     let a = ClaudeAdapter;
     let mut opts = LaunchOptions {
@@ -409,6 +436,19 @@ fn claude_prepare_extras_and_rich_parse() {
     assert!(user
         .iter()
         .any(|e| matches!(e, Event::ToolResult { is_error: true, .. })));
+    assert!(user.iter().any(
+        |e| matches!(e, Event::HookFinished { name, ok: false, .. } if name == "PostToolUse")
+    ));
+    // Live stream-json: tools live in assistant content blocks.
+    let asst_tool = a.parse_line(
+        r#"{"type":"assistant","session_id":"s2","message":{"content":[{"type":"tool_use","id":"tu1","name":"Bash","input":{"command":"echo hi"}}]}}"#,
+    );
+    assert!(asst_tool
+        .iter()
+        .any(|e| matches!(e, Event::HookStarted { name, .. } if name == "PreToolUse")));
+    assert!(asst_tool
+        .iter()
+        .any(|e| matches!(e, Event::ToolCall { name, .. } if name == "Bash")));
     // hooks via shared path
     let _ = a.parse_line(r#"{"type":"hook_started","id":"h","name":"PreToolUse"}"#);
     let _ = a.parse_line(r#"{"type":"hook_finished","id":"h","name":"PostToolUse","ok":true}"#);

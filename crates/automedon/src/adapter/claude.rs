@@ -285,18 +285,16 @@ impl Adapter for ClaudeAdapter {
                     .unwrap_or("unknown")
                     .to_string();
                 let input = value.get("input").cloned().unwrap_or(Value::Null);
+                // HookStarted first so wait_hook_started then wait_tool works
+                // with multi-event re-scan (same order as Pi).
                 vec![
-                    Event::ToolCall {
-                        id: id.clone(),
-                        name: name.clone(),
-                        input: input.clone(),
-                    },
                     Event::HookStarted {
-                        id,
+                        id: id.clone(),
                         name: "PreToolUse".into(),
                         phase: Some(ty.to_string()),
                         detail: Some(serde_json::json!({ "tool": name, "input": input })),
                     },
+                    Event::ToolCall { id, name, input },
                 ]
             }
             "tool_result" => {
@@ -375,40 +373,59 @@ fn content_blocks_to_events(message: &Value) -> Vec<Event> {
                 }
             }
             Some("tool_use") => {
-                out.push(Event::ToolCall {
-                    id: block
-                        .get("id")
-                        .and_then(|v| v.as_str())
-                        .unwrap_or("")
-                        .to_string(),
-                    name: block
-                        .get("name")
-                        .and_then(|v| v.as_str())
-                        .unwrap_or("unknown")
-                        .to_string(),
-                    input: block.get("input").cloned().unwrap_or(Value::Null),
+                // Same general lifecycle as Pi: PreToolUse then ToolCall.
+                // Live stream-json puts tools in assistant content blocks, not
+                // top-level tool_use frames; native hook_* lines only appear when
+                // settings define hooks.
+                let id = block
+                    .get("id")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("")
+                    .to_string();
+                let name = block
+                    .get("name")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("unknown")
+                    .to_string();
+                let input = block.get("input").cloned().unwrap_or(Value::Null);
+                out.push(Event::HookStarted {
+                    id: id.clone(),
+                    name: "PreToolUse".into(),
+                    phase: Some("tool_use".into()),
+                    detail: Some(serde_json::json!({ "tool": name, "input": input })),
                 });
+                out.push(Event::ToolCall { id, name, input });
             }
             Some("tool_result") => {
+                let id = block
+                    .get("tool_use_id")
+                    .or_else(|| block.get("id"))
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("")
+                    .to_string();
+                let output = block
+                    .get("content")
+                    .map(|v| match v {
+                        Value::String(s) => s.clone(),
+                        other => other.to_string(),
+                    })
+                    .unwrap_or_default();
+                let is_error = block
+                    .get("is_error")
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(false);
                 out.push(Event::ToolResult {
-                    id: block
-                        .get("tool_use_id")
-                        .or_else(|| block.get("id"))
-                        .and_then(|v| v.as_str())
-                        .unwrap_or("")
-                        .to_string(),
+                    id: id.clone(),
                     name: String::new(),
-                    output: block
-                        .get("content")
-                        .map(|v| match v {
-                            Value::String(s) => s.clone(),
-                            other => other.to_string(),
-                        })
-                        .unwrap_or_default(),
-                    is_error: block
-                        .get("is_error")
-                        .and_then(|v| v.as_bool())
-                        .unwrap_or(false),
+                    output: output.clone(),
+                    is_error,
+                });
+                out.push(Event::HookFinished {
+                    id,
+                    name: "PostToolUse".into(),
+                    phase: Some("tool_result".into()),
+                    ok: !is_error,
+                    detail: Some(output),
                 });
             }
             _ => {}

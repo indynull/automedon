@@ -483,6 +483,12 @@ impl Session {
     ///
     /// Same cursor semantics as [`Self::expect`]: only events at or after
     /// `expect_cursor` count, so multi-turn waits do not re-match prior turns.
+    ///
+    /// After each stream line is applied, the full transcript from the cursor
+    /// is re-scanned. Adapters may emit several events per line (e.g. Pi
+    /// `tool_execution_start` → HookStarted + ToolCall); only the last is
+    /// returned from [`Self::next_event`], so matching only that last event
+    /// would skip HookStarted / earlier siblings.
     pub async fn wait(&mut self, mut wait: Wait) -> Result<Event> {
         check_wait(&wait)?;
         if wait.timeout == Duration::from_secs(120) && self.default_timeout != wait.timeout {
@@ -490,23 +496,24 @@ impl Session {
         }
 
         let since = self.expect_cursor;
-
-        // Buffered events since cursor.
-        for (i, te) in self
-            .transcript
-            .events()
-            .iter()
-            .enumerate()
-            .skip(self.expect_cursor)
-        {
-            if wait.matches(&te.event, &self.transcript, since) {
-                self.expect_cursor = i + 1;
-                return Ok(te.event.clone());
-            }
-        }
-
         let deadline = Instant::now() + wait.timeout;
+
         loop {
+            // Scan buffered events (includes multi-event siblings applied via
+            // take_last_event, not only the event returned by next_event).
+            for (i, te) in self
+                .transcript
+                .events()
+                .iter()
+                .enumerate()
+                .skip(self.expect_cursor)
+            {
+                if wait.matches(&te.event, &self.transcript, since) {
+                    self.expect_cursor = i + 1;
+                    return Ok(te.event.clone());
+                }
+            }
+
             if self.closed && self.synthetic_queue.is_empty() && self.child.is_none() {
                 return Err(Error::ExpectTimeout {
                     timeout: wait.timeout,
@@ -521,22 +528,25 @@ impl Session {
                 });
             }
 
-            let event = timeout(remaining, self.next_event()).await.map_err(|_| {
-                Error::ExpectTimeout {
-                    timeout: wait.timeout,
-                    predicate: wait.to_string(),
+            match timeout(remaining, self.next_event()).await {
+                Err(_) => {
+                    return Err(Error::ExpectTimeout {
+                        timeout: wait.timeout,
+                        predicate: wait.to_string(),
+                    });
                 }
-            })??;
-
-            if wait.matches(&event, &self.transcript, since) {
-                self.expect_cursor = self.transcript.events().len();
-                return Ok(event);
-            }
-            if matches!(event, Event::Done { .. }) {
-                return Err(Error::ExpectTimeout {
-                    timeout: wait.timeout,
-                    predicate: wait.to_string(),
-                });
+                Ok(Err(Error::SessionFinished)) => {
+                    // Final scan already ran at loop top; nothing left to read.
+                    return Err(Error::ExpectTimeout {
+                        timeout: wait.timeout,
+                        predicate: wait.to_string(),
+                    });
+                }
+                Ok(Err(e)) => return Err(e),
+                Ok(Ok(_event)) => {
+                    // Re-scan at top of loop so side-applied siblings match.
+                    continue;
+                }
             }
         }
     }

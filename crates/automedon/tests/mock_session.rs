@@ -202,6 +202,46 @@ async fn wait_hooks_on_stream() {
         .any(|h| h.name == "PreToolUse" && h.finished));
 }
 
+/// Pi emits HookStarted+ToolCall on one NDJSON line. Wait must match the
+/// side-applied HookStarted, not only the last event returned from that line.
+#[tokio::test(flavor = "multi_thread")]
+async fn wait_hook_started_matches_multi_event_line() {
+    use std::path::PathBuf;
+    use std::time::Duration;
+
+    use automedon::Wait;
+
+    let script =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../tests/fixtures/fake_pi_tools.sh");
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(&script, std::fs::Permissions::from_mode(0o755));
+    }
+
+    let mut s = Session::builder("pi")
+        .bin(&script)
+        .extra("multi_turn", serde_json::json!(false))
+        .extra("tools", serde_json::json!(""))
+        .timeout(Duration::from_secs(10))
+        .build()
+        .unwrap();
+    s.prompt("hi").await.unwrap();
+    // Order matches examples/harnesses/pi_tools.rhai: PreToolUse before tool.
+    s.wait(Wait::hook_started("PreToolUse").timeout(Duration::from_secs(5)))
+        .await
+        .expect("PreToolUse from multi-event tool_execution_start line");
+    s.wait(Wait::tool("bash").timeout(Duration::from_secs(5)))
+        .await
+        .expect("ToolCall sibling after HookStarted");
+    s.wait(Wait::hook_finished("PostToolUse").timeout(Duration::from_secs(5)))
+        .await
+        .expect("PostToolUse from multi-event tool_execution_end line");
+    s.wait(Wait::text("hooks_done").timeout(Duration::from_secs(5)))
+        .await
+        .unwrap();
+}
+
 #[test]
 fn wait_constructors_and_display() {
     use std::time::Duration;

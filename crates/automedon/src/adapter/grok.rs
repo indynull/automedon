@@ -209,18 +209,67 @@ impl Adapter for GrokAdapter {
                     .and_then(|v| v.as_str())
                     .unwrap_or("")
                     .to_string();
+                // Live Grok streaming-json uses toolName/title; older shapes use name/tool.
                 let name = value
-                    .get("name")
+                    .get("toolName")
+                    .or_else(|| value.get("name"))
                     .or_else(|| value.get("tool"))
+                    .or_else(|| value.get("title"))
                     .and_then(|v| v.as_str())
                     .unwrap_or("unknown")
                     .to_string();
                 let input = value
-                    .get("input")
+                    .get("rawInput")
+                    .or_else(|| value.get("input"))
                     .or_else(|| value.get("arguments"))
                     .cloned()
                     .unwrap_or(Value::Null);
                 vec![Event::ToolCall { id, name, input }]
+            }
+            "tool_call_update" => {
+                // Completed tool updates carry stdout in content / rawOutput.
+                let status = value.get("status").and_then(|v| v.as_str()).unwrap_or("");
+                if status != "completed" && status != "failed" && status != "error" {
+                    return Vec::new();
+                }
+                let id = value
+                    .get("toolCallId")
+                    .or_else(|| value.get("id"))
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("")
+                    .to_string();
+                let name = value
+                    .get("toolName")
+                    .or_else(|| value.get("name"))
+                    .or_else(|| value.get("title"))
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("")
+                    .to_string();
+                let output = value
+                    .get("content")
+                    .and_then(|c| c.as_array())
+                    .and_then(|arr| {
+                        arr.iter().find_map(|item| {
+                            item.get("content")
+                                .and_then(|inner| inner.get("text"))
+                                .and_then(|t| t.as_str())
+                                .map(str::to_string)
+                        })
+                    })
+                    .or_else(|| {
+                        value.get("rawOutput").map(|v| match v {
+                            Value::String(s) => s.clone(),
+                            other => other.to_string(),
+                        })
+                    })
+                    .unwrap_or_default();
+                let is_error = status == "failed" || status == "error";
+                vec![Event::ToolResult {
+                    id,
+                    name,
+                    output,
+                    is_error,
+                }]
             }
             "tool_result" => {
                 let id = value
@@ -230,7 +279,8 @@ impl Adapter for GrokAdapter {
                     .unwrap_or("")
                     .to_string();
                 let name = value
-                    .get("name")
+                    .get("toolName")
+                    .or_else(|| value.get("name"))
                     .and_then(|v| v.as_str())
                     .unwrap_or("")
                     .to_string();

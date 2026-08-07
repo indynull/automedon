@@ -779,10 +779,13 @@ fn claude_and_generic_adapters() {
         .iter()
         .any(|e| matches!(e, Event::TurnComplete { .. })));
     assert!(!res_err.iter().any(|e| matches!(e, Event::Done { .. })));
-    assert!(matches!(
-        &c.parse_line(r#"{"type":"tool_use","id":"1","name":"Bash","input":{}}"#)[0],
-        Event::ToolCall { .. }
-    ));
+    let tu = c.parse_line(r#"{"type":"tool_use","id":"1","name":"Bash","input":{}}"#);
+    assert!(tu
+        .iter()
+        .any(|e| matches!(e, Event::HookStarted { name, .. } if name == "PreToolUse")));
+    assert!(tu
+        .iter()
+        .any(|e| matches!(e, Event::ToolCall { name, .. } if name == "Bash")));
     assert!(matches!(
         &c.parse_line(r#"{"type":"error","error":"e"}"#)[0],
         Event::Error { .. }
