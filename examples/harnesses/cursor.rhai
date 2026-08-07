@@ -1,12 +1,12 @@
 // Multi-turn smoke: Cursor agent
 //
-// Binary:     agent / cursor-agent / cursor
-// Auth:       agent login or CURSOR_API_KEY
+// Binary:     cursor-agent (preferred; bare `agent` collides with Grok Build)
+// Auth:       cursor-agent login or CURSOR_API_KEY
 // Stream:     print + stream-json
 // Multi-turn: --resume / --continue
 //
 // Daily QA loop:
-//   1. Confirm `agent` works outside Automedon (login / one-shot prompt).
+//   1. Confirm `cursor-agent` works outside Automedon (login / one-shot prompt).
 //   2. medon run examples/harnesses/cursor.rhai --print
 //   3. Expect AUTOMEDON_T1 then AUTOMEDON_T2; print session id after turn 1.
 //
@@ -15,7 +15,8 @@
 let s = launch("cursor", #{
     yolo: true,
     multi_turn: true,
-    timeout_ms: 180_000
+    timeout_ms: 180_000,
+    binary: "cursor-agent"
 });
 
 s.prompt("Reply with exactly: AUTOMEDON_T1 and nothing else");

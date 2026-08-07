@@ -1,5 +1,6 @@
-//! Cursor agent CLI specialized driver (`agent` / `cursor-agent`).
+//! Cursor agent CLI specialized driver (`cursor-agent`; bare `agent` is last resort).
 //!
+//! Prefer `cursor-agent` over bare `agent` — Grok Build also installs an `agent` binary.
 //! Headless: `-p` + `--output-format stream-json`. Multi-turn: `--resume` / `--continue`.
 
 use std::path::PathBuf;
@@ -115,7 +116,7 @@ impl Adapter for CursorAdapter {
     }
 }
 
-/// Prefer explicit `extra.binary`, then `cursor-agent`, then `agent`, then `cursor agent`.
+/// Prefer explicit `extra.binary` / `opts.bin`, then `cursor-agent`, then bare `agent`, then `cursor agent`.
 fn resolve_cursor_bin(opts: &LaunchOptions, prompt: &str) -> (PathBuf, Vec<String>) {
     if let Some(bin) = opts.extra.get("binary").and_then(|v| v.as_str()) {
         let program = resolve_bin(opts, bin);
@@ -127,13 +128,14 @@ fn resolve_cursor_bin(opts: &LaunchOptions, prompt: &str) -> (PathBuf, Vec<Strin
         return (program, args);
     }
     if opts.bin.is_some() {
+        // Caller-supplied path (may still be named agent); use as-is.
         return (
-            resolve_bin(opts, "agent"),
+            resolve_bin(opts, "cursor-agent"),
             vec!["-p".into(), prompt.to_string()],
         );
     }
-    // PATH preference: agent → cursor-agent → cursor
-    for name in ["agent", "cursor-agent"] {
+    // PATH preference: cursor-agent first (unambiguous), then bare agent, then `cursor agent`.
+    for name in ["cursor-agent", "agent"] {
         if which_on_path(name) {
             return (PathBuf::from(name), vec!["-p".into(), prompt.to_string()]);
         }

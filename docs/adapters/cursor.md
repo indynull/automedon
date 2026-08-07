@@ -3,8 +3,8 @@
 | | |
 |--|--|
 | Adapter id | `cursor` |
-| Binary | `agent`, `cursor-agent`, or `cursor agent` (first found on PATH) |
-| Auth | `agent login` or `CURSOR_API_KEY` |
+| Binary | **`cursor-agent`** preferred (bare `agent` collides with Grok Build); fallback `agent` / `cursor agent` |
+| Auth | `cursor-agent login` or `CURSOR_API_KEY` |
 | Stream | `--print` / `-p` + `--output-format stream-json` (+ partial stream) |
 | Multi-turn | `--resume` / `--continue` |
 | Yolo maps to | `--force` |
@@ -21,6 +21,9 @@ Override binary with `binary: "cursor-agent"` when needed.
 ## Daily smoke
 
 ```bash
-cursor-agent -p "hi" --output-format text   # or: agent -p ...
+cursor-agent -p "hi" --output-format text --force
 medon run examples/harnesses/cursor.rhai --print
 ```
+
+Always prefer the **`cursor-agent`** name. On machines with Grok Build, bare `agent`
+is often Grok's binary, not Cursor.

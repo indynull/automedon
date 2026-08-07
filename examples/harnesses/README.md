@@ -17,7 +17,8 @@ medon run examples/harnesses/<name>.rhai --print
 | `codex.rhai` | `codex` | multi-turn resume markers |
 | `codex_workspace.rhai` | `codex` | multi-turn + tools workspace |
 | `copilot.rhai` | `copilot` | JSONL + resume id |
-| `cursor.rhai` | `cursor` | stream-json + resume |
+| `cursor.rhai` | `cursor` | multi-turn markers via `cursor-agent` |
+| `cursor_workspace.rhai` | `cursor` | multi-turn + tools via `cursor-agent` |
 | `gemini.rhai` | `gemini` | stream-json + resume |
 | `grok.rhai` | `grok` | streaming-json + resume markers |
 | `grok_smoke.rhai` | `grok` | one-turn |

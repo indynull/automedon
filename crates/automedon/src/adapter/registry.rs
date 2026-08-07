@@ -72,7 +72,7 @@ impl AdapterKind {
             Self::Gemini => "gemini (or agy)",
             Self::OpenCode => "opencode",
             Self::Grok => "grok",
-            Self::Cursor => "agent / cursor-agent / cursor",
+            Self::Cursor => "cursor-agent (preferred) / agent / cursor",
             Self::Aider => "aider",
             Self::Pi => "pi",
             Self::Copilot => "copilot",
