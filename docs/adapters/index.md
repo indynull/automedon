@@ -32,12 +32,12 @@ Product-specific keys go in the Rhai launch map / `LaunchOptions.extra`:
 
 ## Pattern
 
-```rhai
+```rust
 let s = launch("grok", #{ yolo: true, timeout_ms: 180_000 });
-s.prompt("Reply with exactly: AILIUM_T1");
-s.expect(timeout_ms(text("AILIUM_T1"), 120_000));
+s.prompt("Reply with exactly: AUTOMEDON_T1");
+s.expect(timeout_ms(text("AUTOMEDON_T1"), 120_000));
 s.await_turn();
-s.prompt("Reply with exactly: AILIUM_T2");
-s.expect(timeout_ms(text("AILIUM_T2"), 120_000));
+s.prompt("Reply with exactly: AUTOMEDON_T2");
+s.expect(timeout_ms(text("AUTOMEDON_T2"), 120_000));
 s.close();
 ```

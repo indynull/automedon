@@ -9,13 +9,13 @@
 
 ## Headless
 
-```rhai
+```rust
 let s = launch("grok", #{ yolo: true, multi_turn: true, timeout_ms: 180_000 });
 ```
 
 ## ACP
 
-```rhai
+```rust
 let s = launch("grok", #{ yolo: true, acp: true, timeout_ms: 180_000 });
 ```
 

@@ -9,7 +9,7 @@
 
 ## Launch
 
-```rhai
+```rust
 let s = launch("aider", #{
     model: "xai/grok-4.5",
     no_git: true,

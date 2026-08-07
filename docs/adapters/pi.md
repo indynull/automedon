@@ -9,7 +9,7 @@
 
 ## xAI path
 
-```rhai
+```rust
 let s = launch("pi", #{
     yolo: true,
     provider: "xai",

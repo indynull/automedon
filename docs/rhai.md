@@ -2,9 +2,11 @@
 
 Scripts are ordinary Rhai files (`.rhai`). Entry points: `medon run` and `medon eval`.
 
+Handbook code fences use the **`rust`** language tag for highlighting: mdBook’s highlight.js has no Rhai grammar, and the [Rhai book](https://rhai.rs/book/about/related.html) recommends Rust (or JavaScript when you need string interpolation).
+
 ## Launch
 
-```rhai
+```rust
 let s = launch("grok", #{
     yolo: true,
     model: "optional-model-id",
@@ -45,7 +47,7 @@ let s = launch("grok", #{
 
 Common constructors (see product and mock examples):
 
-```rhai
+```rust
 text("marker")
 tool("bash")
 tool_any()

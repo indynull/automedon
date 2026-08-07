@@ -10,7 +10,7 @@
 
 ## Launch
 
-```rhai
+```rust
 let s = launch("claude", #{ yolo: true, timeout_ms: 180_000 });
 ```
 

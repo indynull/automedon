@@ -9,7 +9,7 @@
 
 ## Launch
 
-```rhai
+```rust
 let s = launch("copilot", #{ yolo: true, timeout_ms: 180_000 });
 ```
 

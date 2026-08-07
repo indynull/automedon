@@ -6,7 +6,7 @@ Prefer a **product** harness. Examples under `examples/` use Grok or Pi. For off
 
 Needs `grok` on `PATH` and grok auth.
 
-```rhai
+```rust
 // examples/multi_turn.rhai (simplified)
 
 let s = launch("grok", #{
@@ -50,7 +50,7 @@ Needs `pi` on `PATH` and xAI credentials for Pi.
 medon run examples/wait_hooks.rhai --print
 ```
 
-```rhai
+```rust
 let s = launch("pi", #{
     yolo: true,
     provider: "xai",

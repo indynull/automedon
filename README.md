@@ -49,7 +49,7 @@ medon shot mock "hello" --scenario echo
 
 ### Multi-turn (Rhai, Grok)
 
-```rhai
+```rust
 let s = launch("grok", #{ yolo: true, multi_turn: true, timeout_ms: 180_000 });
 s.prompt("Reply with exactly: AUTOMEDON_T1 and nothing else");
 s.expect(timeout_ms(text("AUTOMEDON_T1"), 120_000));
@@ -61,7 +61,7 @@ s.close();
 
 ### Waits (Rhai, Pi tools/hooks)
 
-```rhai
+```rust
 let s = launch("pi", #{ yolo: true, provider: "xai", model: "grok-4.5", timeout_ms: 180_000 });
 s.prompt("Run a shell tool once: echo hi. End with DONE.");
 s.wait(timeout_ms(wait_hook_started("PreToolUse"), 120_000));
