@@ -8,7 +8,7 @@
 | Stream | `--print` / `-p` + `--output-format stream-json` (+ partial stream) |
 | Multi-turn | `--resume` / `--continue` |
 | Yolo maps to | `--force` |
-| Tools | `tool_call` frames: `editToolCall` → `edit`, `shellToolCall` → `shell`, … |
+| Tools | `tool_call` frames: `editToolCall` -> `edit`, `shellToolCall` -> `shell`, etc. |
 | Examples | `cursor.rhai`, `cursor_workspace.rhai` |
 
 ## Launch
