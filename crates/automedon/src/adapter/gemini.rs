@@ -24,11 +24,14 @@ impl Adapter for GeminiAdapter {
             launch: true,
             multi_turn: true,
             stream_tools: true,
+            wait_hooks: true,
+            hooks: true,
             sessions: true,
             streaming_json: true,
             yolo: true,
             permissions_preflight: true,
-            acp: true,
+            // `--acp` prepare is not live-proven on this host; demote until driven.
+            acp: false,
             permissions: false,
             permissions_interactive: false,
             ..Default::default()
@@ -42,26 +45,15 @@ impl Adapter for GeminiAdapter {
         ctx: &TurnContext,
     ) -> Result<PreparedLaunch> {
         let program = resolve_gemini_bin(opts);
-        let use_acp = opts
+        if opts
             .extra
             .get("acp")
             .and_then(|v| v.as_bool())
-            .unwrap_or(false);
-
-        if use_acp {
-            return Ok(PreparedLaunch {
-                harness: "gemini".into(),
-                spawn: Some(SpawnSpec {
-                    program,
-                    args: vec!["--acp".into()],
-                    cwd: opts.cwd.clone(),
-                    env: base_env(opts),
-                    retain_stdin: true,
-                }),
-                synthetic: None,
-                capabilities: self.capabilities(),
-                multi_turn: true,
-            });
+            .unwrap_or(false)
+        {
+            return Err(crate::error::Error::Other(
+                "gemini ACP is not implemented for live drive (use -o stream-json)".into(),
+            ));
         }
 
         let mut args = vec![

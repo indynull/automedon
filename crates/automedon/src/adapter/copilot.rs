@@ -29,13 +29,16 @@ impl Adapter for CopilotAdapter {
             launch: true,
             multi_turn: true,
             stream_tools: true,
+            wait_hooks: true,
+            hooks: true,
             sessions: true,
             streaming_json: true,
             yolo: true,
             permissions_preflight: true,
             permissions: false,
             permissions_interactive: false,
-            acp: true,
+            // `--acp` prepare exists but is not live-proven; demote until driven.
+            acp: false,
             ..Default::default()
         }
     }
@@ -47,26 +50,15 @@ impl Adapter for CopilotAdapter {
         ctx: &TurnContext,
     ) -> Result<PreparedLaunch> {
         let program = resolve_bin(opts, "copilot");
-        let use_acp = opts
+        if opts
             .extra
             .get("acp")
             .and_then(|v| v.as_bool())
-            .unwrap_or(false);
-
-        if use_acp {
-            return Ok(PreparedLaunch {
-                harness: "copilot".into(),
-                spawn: Some(SpawnSpec {
-                    program,
-                    args: vec!["--acp".into()],
-                    cwd: opts.cwd.clone(),
-                    env: base_env(opts),
-                    retain_stdin: true,
-                }),
-                synthetic: None,
-                capabilities: self.capabilities(),
-                multi_turn: true,
-            });
+            .unwrap_or(false)
+        {
+            return Err(crate::error::Error::Other(
+                "copilot ACP is not implemented for live drive (use --output-format json)".into(),
+            ));
         }
 
         // Prefer JSONL for structured text/tools/session (`--output-format json`).
@@ -249,44 +241,45 @@ fn parse_copilot_json(value: &Value) -> Vec<Event> {
                 .and_then(|v| v.as_str())
                 .unwrap_or("unknown")
                 .to_string();
-            vec![Event::ToolCall {
-                id,
-                name,
-                input: data
-                    .get("arguments")
-                    .or_else(|| data.get("input"))
-                    .cloned()
-                    .unwrap_or(Value::Null),
-            }]
+            let input = data
+                .get("arguments")
+                .or_else(|| data.get("input"))
+                .cloned()
+                .unwrap_or(Value::Null);
+            shared_parse::tool_start_events(id, name, input, "tool")
         }
-        "tool.execution_end" | "tool_result" | "tool.end" => {
+        "tool.execution_end"
+        | "tool.execution_complete"
+        | "tool_result"
+        | "tool.end"
+        | "tool.complete" => {
             let id = data
                 .get("id")
                 .or_else(|| data.get("toolCallId"))
                 .and_then(|v| v.as_str())
                 .unwrap_or("")
                 .to_string();
-            vec![Event::ToolResult {
-                id,
-                name: data
-                    .get("name")
-                    .and_then(|v| v.as_str())
-                    .unwrap_or("")
-                    .to_string(),
-                output: data
-                    .get("output")
-                    .or_else(|| data.get("result"))
-                    .map(|v| match v {
-                        Value::String(s) => s.clone(),
-                        other => other.to_string(),
-                    })
-                    .unwrap_or_default(),
-                is_error: data
-                    .get("isError")
-                    .or_else(|| data.get("is_error"))
-                    .and_then(|v| v.as_bool())
-                    .unwrap_or(false),
-            }]
+            let name = data
+                .get("name")
+                .or_else(|| data.get("toolName"))
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
+            let output = data
+                .get("output")
+                .or_else(|| data.get("result").and_then(|r| r.get("content")))
+                .or_else(|| data.get("result"))
+                .map(|v| match v {
+                    Value::String(s) => s.clone(),
+                    other => other.to_string(),
+                })
+                .unwrap_or_default();
+            let is_error = data
+                .get("isError")
+                .or_else(|| data.get("is_error"))
+                .and_then(|v| v.as_bool())
+                .unwrap_or_else(|| data.get("success").and_then(|s| s.as_bool()) == Some(false));
+            shared_parse::tool_end_events(id, name, output, is_error, "tool")
         }
         "error" | "session.error" => vec![Event::Error {
             message: data
@@ -427,18 +420,26 @@ mod tests {
         let ev = a.parse_line(
             r#"{"type":"tool.execution_start","data":{"id":"t1","name":"bash","arguments":{"c":"ls"}}}"#,
         );
-        assert!(matches!(ev.first(), Some(Event::ToolCall { name, .. }) if name == "bash"));
+        assert!(ev
+            .iter()
+            .any(|e| matches!(e, Event::HookStarted { name, .. } if name == "PreToolUse")));
+        assert!(ev
+            .iter()
+            .any(|e| matches!(e, Event::ToolCall { name, .. } if name == "bash")));
         let ev = a.parse_line(
             r#"{"type":"tool.execution_end","data":{"id":"t1","name":"bash","output":"ok","isError":false}}"#,
         );
-        assert!(matches!(
-            ev.first(),
-            Some(Event::ToolResult {
+        assert!(ev.iter().any(|e| matches!(
+            e,
+            Event::ToolResult {
                 is_error: false,
                 output,
                 ..
-            }) if output == "ok"
-        ));
+            } if output == "ok"
+        )));
+        assert!(ev
+            .iter()
+            .any(|e| matches!(e, Event::HookFinished { name, .. } if name == "PostToolUse")));
     }
 
     #[test]

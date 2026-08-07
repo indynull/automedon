@@ -22,11 +22,14 @@ impl Adapter for OpenCodeAdapter {
             launch: true,
             multi_turn: true,
             stream_tools: true,
+            wait_hooks: true,
+            hooks: true,
             sessions: true,
             streaming_json: true,
             yolo: true,
             permissions_preflight: true,
-            acp: true,
+            // `opencode acp` prepare kept only when live-proven; demote by default.
+            acp: false,
             permissions: false,
             permissions_interactive: false,
             ..Default::default()
@@ -39,28 +42,18 @@ impl Adapter for OpenCodeAdapter {
         opts: &LaunchOptions,
         ctx: &TurnContext,
     ) -> Result<PreparedLaunch> {
-        let use_acp = opts
+        if opts
             .extra
             .get("acp")
             .and_then(|v| v.as_bool())
-            .unwrap_or(false);
+            .unwrap_or(false)
+        {
+            return Err(crate::error::Error::Other(
+                "opencode ACP is not implemented for live drive (use run --format json)".into(),
+            ));
+        }
 
         let program = resolve_bin(opts, "opencode");
-        if use_acp {
-            return Ok(PreparedLaunch {
-                harness: "opencode".into(),
-                spawn: Some(SpawnSpec {
-                    program,
-                    args: vec!["acp".into()],
-                    cwd: opts.cwd.clone(),
-                    env: base_env(opts),
-                    retain_stdin: true,
-                }),
-                synthetic: None,
-                capabilities: self.capabilities(),
-                multi_turn: true,
-            });
-        }
 
         // `opencode run "prompt" --format json`
         let mut args = vec!["run".into(), prompt.to_string()];
@@ -129,13 +122,14 @@ impl Adapter for OpenCodeAdapter {
                         events.push(Event::TextDelta { text });
                     }
                 }
-                // Tool parts under part.type == "tool-invocation" / tool
+                // Tool parts under part.type == "tool" / tool-invocation.
+                // Live OpenCode often sends one tool_use frame with state.completed already set.
                 if let Some(part) = v.get("part") {
                     let pty = part.get("type").and_then(|t| t.as_str()).unwrap_or("");
                     if pty.contains("tool") || pty == "tool-invocation" {
                         let id = part
-                            .get("id")
-                            .or_else(|| part.get("callID"))
+                            .get("callID")
+                            .or_else(|| part.get("id"))
                             .and_then(|x| x.as_str())
                             .unwrap_or("")
                             .to_string();
@@ -145,32 +139,56 @@ impl Adapter for OpenCodeAdapter {
                             .and_then(|x| x.as_str())
                             .unwrap_or("unknown")
                             .to_string();
-                        if part.get("state").and_then(|s| s.as_str()) == Some("completed")
-                            || pty.contains("result")
-                        {
-                            events.push(Event::ToolResult {
-                                id,
-                                name,
-                                output: part
-                                    .get("output")
-                                    .or_else(|| part.get("result"))
-                                    .map(|x| match x {
-                                        serde_json::Value::String(s) => s.clone(),
-                                        other => other.to_string(),
-                                    })
-                                    .unwrap_or_default(),
-                                is_error: false,
+                        let state = part.get("state");
+                        // Live: state is object `{status,input,output}`; fixtures may use string.
+                        let status = state
+                            .and_then(|s| s.as_str())
+                            .or_else(|| {
+                                state.and_then(|s| s.get("status")).and_then(|x| x.as_str())
+                            })
+                            .or_else(|| part.get("status").and_then(|s| s.as_str()))
+                            .unwrap_or("");
+                        let input = state
+                            .and_then(|s| s.get("input"))
+                            .or_else(|| part.get("input"))
+                            .or_else(|| part.get("args"))
+                            .cloned()
+                            .unwrap_or(serde_json::Value::Null);
+                        let completed =
+                            status == "completed" || status == "error" || pty.contains("result");
+                        // Drop tool_use-only start events if this frame is already complete.
+                        if completed {
+                            events.retain(|e| match e {
+                                Event::ToolCall { .. } => false,
+                                Event::HookStarted { name, .. } if name == "PreToolUse" => false,
+                                _ => true,
                             });
-                        } else {
-                            events.push(Event::ToolCall {
-                                id,
-                                name,
-                                input: part
-                                    .get("input")
-                                    .or_else(|| part.get("args"))
-                                    .cloned()
-                                    .unwrap_or(serde_json::Value::Null),
-                            });
+                            let output = state
+                                .and_then(|s| s.get("output"))
+                                .or_else(|| part.get("output"))
+                                .or_else(|| part.get("result"))
+                                .map(|x| match x {
+                                    serde_json::Value::String(s) => s.clone(),
+                                    other => other.to_string(),
+                                })
+                                .unwrap_or_default();
+                            let is_error = status == "error"
+                                || state
+                                    .and_then(|s| s.get("metadata"))
+                                    .and_then(|m| m.get("exit"))
+                                    .and_then(|e| e.as_i64())
+                                    .is_some_and(|c| c != 0);
+                            events.extend(shared_parse::tool_start_events(
+                                id.clone(),
+                                name.clone(),
+                                input,
+                                "tool",
+                            ));
+                            events.extend(shared_parse::tool_end_events(
+                                id, name, output, is_error, "tool",
+                            ));
+                        } else if !events.iter().any(|e| matches!(e, Event::ToolCall { .. })) {
+                            events.extend(shared_parse::tool_start_events(id, name, input, "tool"));
                         }
                     }
                 }

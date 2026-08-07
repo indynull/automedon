@@ -202,6 +202,31 @@ async fn wait_hooks_on_stream() {
         .any(|h| h.name == "PreToolUse" && h.finished));
 }
 
+#[tokio::test(flavor = "multi_thread")]
+async fn aider_tool_and_hook_waits_fail_closed() {
+    use std::time::Duration;
+
+    use automedon::Wait;
+
+    let mut s = Session::builder("aider")
+        .timeout(Duration::from_secs(5))
+        .build()
+        .unwrap();
+    let err = s
+        .wait(Wait::tool_any().timeout(Duration::from_secs(1)))
+        .await
+        .unwrap_err();
+    assert!(
+        err.to_string().contains("stream_tools"),
+        "unexpected: {err}"
+    );
+    let err = s
+        .wait(Wait::hook_started("PreToolUse").timeout(Duration::from_secs(1)))
+        .await
+        .unwrap_err();
+    assert!(err.to_string().contains("wait_hooks"), "unexpected: {err}");
+}
+
 /// Pi emits HookStarted+ToolCall on one NDJSON line. Wait must match the
 /// side-applied HookStarted, not only the last event returned from that line.
 #[tokio::test(flavor = "multi_thread")]
@@ -517,4 +542,99 @@ async fn rhai_dsl_tools() {
         names
     "#;
     automedon::dsl::eval_str(src).unwrap();
+}
+
+
+#[tokio::test(flavor = "multi_thread")]
+async fn wait_fails_closed_on_harness_error() {
+    use std::path::PathBuf;
+    use std::time::Duration;
+
+    use automedon::Wait;
+
+    let script = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../tests/fixtures/fake_gemini_auth_fail.sh");
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(&script, std::fs::Permissions::from_mode(0o755));
+    }
+    let mut s = Session::builder("gemini")
+        .bin(&script)
+        .timeout(Duration::from_secs(10))
+        .build()
+        .unwrap();
+    s.prompt("hi").await.unwrap();
+    let err = s
+        .wait(Wait::text("never").timeout(Duration::from_secs(5)))
+        .await
+        .unwrap_err();
+    assert!(
+        err.to_string().contains("harness error") || err.to_string().contains("Ineligible"),
+        "unexpected: {err}"
+    );
+}
+
+#[test]
+fn wait_needs_tools_and_hooks_helpers() {
+    use automedon::wait::{wait_needs_hooks, wait_needs_tools, Wait};
+    assert!(wait_needs_tools(&Wait::tool_any()));
+    assert!(wait_needs_tools(&Wait::tool("bash")));
+    assert!(wait_needs_tools(&Wait::tool_result("bash")));
+    assert!(wait_needs_tools(&Wait::tool_result_contains("bash", "ok")));
+    assert!(wait_needs_tools(&Wait::tool_result_error("bash", true)));
+    assert!(!wait_needs_tools(&Wait::text("x")));
+    assert!(!wait_needs_tools(&Wait::turn_complete()));
+    assert!(wait_needs_hooks(&Wait::hook_started("PreToolUse")));
+    assert!(wait_needs_hooks(&Wait::hook_finished("PostToolUse")));
+    assert!(wait_needs_hooks(&Wait::hook("PreToolUse")));
+    assert!(!wait_needs_hooks(&Wait::text("x")));
+    assert!(wait_needs_tools(&Wait::any([Wait::tool_any(), Wait::text("x")])));
+    assert!(wait_needs_hooks(&Wait::any([Wait::hook_any(), Wait::text("x")])));
+    assert!(wait_needs_tools(&Wait::all([Wait::tool_any(), Wait::text("x")])));
+    assert!(wait_needs_hooks(&Wait::all([Wait::hook_any(), Wait::text("x")])));
+    assert!(!wait_needs_tools(&Wait::all([Wait::text("a"), Wait::text("b")])));
+}
+
+#[test]
+fn copilot_and_opencode_live_tool_lifecycle_unit() {
+    use automedon::adapter::{Adapter, CopilotAdapter, OpenCodeAdapter};
+    use automedon::Event;
+
+    let c = CopilotAdapter;
+    let start = c.parse_line(
+        r#"{"type":"tool.execution_start","data":{"toolCallId":"t1","toolName":"bash","arguments":{"command":"echo hi"}}}"#,
+    );
+    assert!(start
+        .iter()
+        .any(|e| matches!(e, Event::HookStarted { name, .. } if name == "PreToolUse")));
+    assert!(start
+        .iter()
+        .any(|e| matches!(e, Event::ToolCall { name, .. } if name == "bash")));
+    let done = c.parse_line(
+        r#"{"type":"tool.execution_complete","data":{"toolCallId":"t1","toolName":"bash","success":true,"result":{"content":"hi\n"}}}"#,
+    );
+    assert!(done
+        .iter()
+        .any(|e| matches!(e, Event::ToolResult { is_error: false, .. })));
+    assert!(done
+        .iter()
+        .any(|e| matches!(e, Event::HookFinished { name, ok: true, .. } if name == "PostToolUse")));
+
+    let o = OpenCodeAdapter;
+    let live = o.parse_line(
+        r#"{"type":"tool_use","sessionID":"s1","part":{"type":"tool","tool":"bash","callID":"c1","state":{"status":"completed","input":{"command":"echo x"},"output":"x\n","metadata":{"exit":0}}}}"#,
+    );
+    assert!(live
+        .iter()
+        .any(|e| matches!(e, Event::HookStarted { name, .. } if name == "PreToolUse")));
+    assert!(live
+        .iter()
+        .any(|e| matches!(e, Event::ToolCall { name, .. } if name == "bash")));
+    assert!(live
+        .iter()
+        .any(|e| matches!(e, Event::ToolResult { .. })));
+    assert!(live
+        .iter()
+        .any(|e| matches!(e, Event::HookFinished { name, .. } if name == "PostToolUse")));
 }

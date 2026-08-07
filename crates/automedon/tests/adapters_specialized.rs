@@ -20,6 +20,8 @@ fn ctx_turn(turn: u64, session: Option<&str>) -> TurnContext {
 #[test]
 fn codex_prepare_exec_and_acp() {
     let a = CodexAdapter;
+    assert!(!a.capabilities().acp);
+    assert!(a.capabilities().wait_hooks);
     let p = a
         .prepare("hi", &LaunchOptions::default(), &ctx_turn(1, None))
         .unwrap();
@@ -29,14 +31,13 @@ fn codex_prepare_exec_and_acp() {
 
     let mut opts = LaunchOptions::default();
     opts.extra.insert("acp".into(), json!(true));
-    let p = a.prepare("hi", &opts, &ctx_turn(1, None)).unwrap();
-    let spawn = p.spawn.unwrap();
-    assert!(spawn.retain_stdin);
-    // ACP uses community adapter package via npx by default.
+    let err = match a.prepare("hi", &opts, &ctx_turn(1, None)) {
+        Err(e) => e,
+        Ok(_) => panic!("expected prepare error"),
+    };
     assert!(
-        spawn.args.iter().any(|x| x.contains("codex-acp"))
-            || spawn.program.ends_with("npx")
-            || spawn.program.as_os_str() == "npx"
+        err.to_string().contains("ACP is not implemented"),
+        "unexpected: {err}"
     );
 }
 
@@ -44,7 +45,12 @@ fn codex_prepare_exec_and_acp() {
 fn codex_parse_tool_and_end() {
     let a = CodexAdapter;
     let ev = a.parse_line(r#"{"type":"tool_call","id":"1","name":"bash","input":{"c":"ls"}}"#);
-    assert!(matches!(ev.first(), Some(Event::ToolCall { name, .. }) if name == "bash"));
+    assert!(ev
+        .iter()
+        .any(|e| matches!(e, Event::HookStarted { name, .. } if name == "PreToolUse")));
+    assert!(ev
+        .iter()
+        .any(|e| matches!(e, Event::ToolCall { name, .. } if name == "bash")));
     let ev = a.parse_line(r#"{"type":"result","sessionId":"s1","result":"done"}"#);
     assert!(ev
         .iter()
@@ -81,8 +87,13 @@ fn gemini_prepare_stream_resume_acp() {
     assert!(args.iter().any(|x| x == "-y"));
 
     opts.extra.insert("acp".into(), json!(true));
-    let p = a.prepare("p", &opts, &ctx_turn(1, None)).unwrap();
-    assert!(p.spawn.unwrap().args.iter().any(|x| x == "--acp"));
+    let err = match a.prepare("p", &opts, &ctx_turn(1, None)) {
+        Err(e) => e,
+        Ok(_) => panic!("expected prepare error"),
+    };
+    assert!(err.to_string().contains("ACP is not implemented"));
+    assert!(!a.capabilities().acp);
+    assert!(a.capabilities().wait_hooks);
 }
 
 #[test]
@@ -274,8 +285,13 @@ fn copilot_prepare_acp_and_prompt() {
 
     let mut opts = LaunchOptions::default();
     opts.extra.insert("acp".into(), json!(true));
-    let p = a.prepare("hi", &opts, &ctx_turn(1, None)).unwrap();
-    assert!(p.spawn.unwrap().retain_stdin);
+    let err = match a.prepare("hi", &opts, &ctx_turn(1, None)) {
+        Err(e) => e,
+        Ok(_) => panic!("expected prepare error"),
+    };
+    assert!(err.to_string().contains("ACP is not implemented"));
+    assert!(!a.capabilities().acp);
+    assert!(a.capabilities().wait_hooks);
 
     let p = a
         .prepare(
@@ -357,9 +373,9 @@ fn grok_parse_live_tool_name_and_result() {
         r#"{"type":"tool_result","id":"c2","name":"bash","output":"ok","is_error":false}"#,
     );
     assert!(legacy.iter().any(|e| matches!(e, Event::ToolResult { .. })));
-    assert!(legacy.iter().any(
-        |e| matches!(e, Event::HookFinished { name, ok: true, .. } if name == "PostToolUse")
-    ));
+    assert!(legacy
+        .iter()
+        .any(|e| matches!(e, Event::HookFinished { name, ok: true, .. } if name == "PostToolUse")));
 }
 
 #[test]
@@ -701,15 +717,18 @@ fn gemini_approval_worktree_tools() {
 #[test]
 fn opencode_acp_and_model() {
     let a = OpenCodeAdapter;
+    assert!(!a.capabilities().acp);
+    assert!(a.capabilities().wait_hooks);
     let mut opts = LaunchOptions {
         model: Some("m1".into()),
         ..Default::default()
     };
     opts.extra.insert("acp".into(), json!(true));
-    let p = a.prepare("x", &opts, &ctx_turn(1, None)).unwrap();
-    let spawn = p.spawn.unwrap();
-    assert!(spawn.retain_stdin);
-    assert_eq!(spawn.args, vec!["acp".to_string()]);
+    let err = match a.prepare("x", &opts, &ctx_turn(1, None)) {
+        Err(e) => e,
+        Ok(_) => panic!("expected prepare error"),
+    };
+    assert!(err.to_string().contains("ACP is not implemented"));
     let opts = LaunchOptions {
         model: Some("m1".into()),
         ..Default::default()

@@ -26,11 +26,14 @@ impl Adapter for CodexAdapter {
             launch: true,
             multi_turn: true,
             stream_tools: true,
+            wait_hooks: true,
+            hooks: true,
             sessions: true,
             streaming_json: true,
             yolo: true,
             permissions_preflight: true,
-            acp: true,
+            // ACP via community @agentclientprotocol/codex-acp is prepare-only until live-proven.
+            acp: false,
             permissions: false,
             permissions_interactive: false,
             ..Default::default()
@@ -43,35 +46,16 @@ impl Adapter for CodexAdapter {
         opts: &LaunchOptions,
         ctx: &TurnContext,
     ) -> Result<PreparedLaunch> {
-        let use_acp = opts
+        if opts
             .extra
             .get("acp")
             .and_then(|v| v.as_bool())
-            .unwrap_or(false);
-
-        if use_acp {
-            // Community ACP adapter package; Session uses JSON-RPC after spawn.
-            let program = resolve_bin(opts, "npx");
-            let mut args = vec!["-y".into(), "@agentclientprotocol/codex-acp".into()];
-            if let Some(cwd) = &opts.cwd {
-                args.push("--cwd".into());
-                args.push(cwd.display().to_string());
-            }
-            let mut env = base_env(opts);
-            env.insert("AUTOMEDON_ACP_PROMPT".into(), prompt.to_string());
-            return Ok(PreparedLaunch {
-                harness: "codex".into(),
-                spawn: Some(SpawnSpec {
-                    program,
-                    args,
-                    cwd: opts.cwd.clone(),
-                    env,
-                    retain_stdin: true,
-                }),
-                synthetic: None,
-                capabilities: self.capabilities(),
-                multi_turn: true,
-            });
+            .unwrap_or(false)
+        {
+            return Err(crate::error::Error::Other(
+                "codex ACP is not implemented for live drive (community package path removed; use exec --json)"
+                    .into(),
+            ));
         }
 
         let program = resolve_bin(opts, "codex");

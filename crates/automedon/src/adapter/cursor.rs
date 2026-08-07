@@ -31,6 +31,8 @@ impl Adapter for CursorAdapter {
             launch: true,
             multi_turn: true,
             stream_tools: true,
+            wait_hooks: true,
+            hooks: true,
             sessions: true,
             streaming_json: true,
             yolo: true,
@@ -283,14 +285,20 @@ fn parse_cursor_tool_call(value: &Value) -> Vec<Event> {
         } else {
             result.to_string()
         };
-        out.push(Event::ToolResult {
+        out.extend(shared_parse::tool_end_events(
             id,
             name,
             output,
             is_error,
-        });
+            "tool_call",
+        ));
     } else {
-        out.push(Event::ToolCall { id, name, input });
+        out.extend(shared_parse::tool_start_events(
+            id,
+            name,
+            input,
+            "tool_call",
+        ));
     }
     out
 }

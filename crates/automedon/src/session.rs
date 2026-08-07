@@ -14,7 +14,7 @@ use crate::error::{Error, Result};
 use crate::event::{Event, Transcript};
 use crate::expect::Expect;
 use crate::transport::{spawn_process, ChildIo};
-use crate::wait::{check_wait, Wait};
+use crate::wait::{check_wait, wait_needs_hooks, wait_needs_tools, Wait};
 
 /// High-level handle — multi-turn session against one harness adapter.
 pub struct Session {
@@ -491,6 +491,15 @@ impl Session {
     /// would skip HookStarted / earlier siblings.
     pub async fn wait(&mut self, mut wait: Wait) -> Result<Event> {
         check_wait(&wait)?;
+        if wait_needs_tools(&wait) {
+            self.require_cap("stream_tools", self.caps.stream_tools)?;
+        }
+        if wait_needs_hooks(&wait) {
+            self.require_cap(
+                "wait_hooks",
+                self.caps.wait_hooks || self.caps.hooks || self.caps.in_process,
+            )?;
+        }
         if wait.timeout == Duration::from_secs(120) && self.default_timeout != wait.timeout {
             wait.timeout = self.default_timeout;
         }
@@ -511,6 +520,16 @@ impl Session {
                 if wait.matches(&te.event, &self.transcript, since) {
                     self.expect_cursor = i + 1;
                     return Ok(te.event.clone());
+                }
+                // Fail closed on harness Error so auth/stream failures do not hang.
+                if matches!(&te.event, Event::Error { .. })
+                    && !wait.matches(&te.event, &self.transcript, since)
+                {
+                    if let Event::Error { message } = &te.event {
+                        return Err(Error::ExpectFailed(format!(
+                            "harness error while waiting for {wait}: {message}"
+                        )));
+                    }
                 }
             }
 
@@ -543,7 +562,16 @@ impl Session {
                     });
                 }
                 Ok(Err(e)) => return Err(e),
-                Ok(Ok(_event)) => {
+                Ok(Ok(event)) => {
+                    if matches!(&event, Event::Error { .. })
+                        && !wait.matches(&event, &self.transcript, since)
+                    {
+                        if let Event::Error { message } = &event {
+                            return Err(Error::ExpectFailed(format!(
+                                "harness error while waiting for {wait}: {message}"
+                            )));
+                        }
+                    }
                     // Re-scan at top of loop so side-applied siblings match.
                     continue;
                 }

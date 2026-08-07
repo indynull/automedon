@@ -246,17 +246,17 @@ fn claude_auth_and_content_edge_paths() {
 #[test]
 fn codex_acp_cwd_and_first_turn_cd() {
     let a = CodexAdapter;
+    assert!(!a.capabilities().acp);
     let mut opts = LaunchOptions {
         cwd: Some(PathBuf::from("/tmp")),
         ..Default::default()
     };
     opts.extra.insert("acp".into(), json!(true));
-    let spawn = a.prepare("p", &opts, &ctx(1, None)).unwrap().spawn.unwrap();
-    assert!(spawn.retain_stdin);
-    assert!(spawn
-        .args
-        .windows(2)
-        .any(|w| w[0] == "--cwd" && w[1] == "/tmp"));
+    let err = match a.prepare("p", &opts, &ctx(1, None)) {
+        Err(e) => e,
+        Ok(_) => panic!("expected prepare error"),
+    };
+    assert!(err.to_string().contains("ACP is not implemented"));
 
     let opts = LaunchOptions {
         cwd: Some(PathBuf::from("/work")),

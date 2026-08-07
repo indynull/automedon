@@ -48,54 +48,55 @@ pub fn parse_common_json(value: &Value, channel: &str) -> Vec<Event> {
             }
         }
         "tool_call" | "tool_use" | "function_call" => {
-            vec![Event::ToolCall {
-                id: value
-                    .get("id")
-                    .or_else(|| value.get("toolCallId"))
-                    .and_then(|v| v.as_str())
-                    .unwrap_or("")
-                    .to_string(),
-                name: value
-                    .get("name")
-                    .or_else(|| value.get("tool"))
-                    .and_then(|v| v.as_str())
-                    .unwrap_or("unknown")
-                    .to_string(),
-                input: value
-                    .get("input")
-                    .or_else(|| value.get("arguments"))
-                    .or_else(|| value.get("args"))
-                    .cloned()
-                    .unwrap_or(Value::Null),
-            }]
+            let id = value
+                .get("id")
+                .or_else(|| value.get("toolCallId"))
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
+            let name = value
+                .get("name")
+                .or_else(|| value.get("tool"))
+                .or_else(|| value.get("toolName"))
+                .and_then(|v| v.as_str())
+                .unwrap_or("unknown")
+                .to_string();
+            let input = value
+                .get("input")
+                .or_else(|| value.get("arguments"))
+                .or_else(|| value.get("args"))
+                .or_else(|| value.get("rawInput"))
+                .cloned()
+                .unwrap_or(Value::Null);
+            tool_start_events(id, name, input, ty)
         }
         "tool_result" | "function_call_output" => {
-            vec![Event::ToolResult {
-                id: value
-                    .get("id")
-                    .or_else(|| value.get("toolCallId"))
-                    .and_then(|v| v.as_str())
-                    .unwrap_or("")
-                    .to_string(),
-                name: value
-                    .get("name")
-                    .and_then(|v| v.as_str())
-                    .unwrap_or("")
-                    .to_string(),
-                output: value
-                    .get("output")
-                    .or_else(|| value.get("result"))
-                    .map(|v| match v {
-                        Value::String(s) => s.clone(),
-                        other => other.to_string(),
-                    })
-                    .unwrap_or_default(),
-                is_error: value
-                    .get("is_error")
-                    .or_else(|| value.get("isError"))
-                    .and_then(|v| v.as_bool())
-                    .unwrap_or(false),
-            }]
+            let id = value
+                .get("id")
+                .or_else(|| value.get("toolCallId"))
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
+            let name = value
+                .get("name")
+                .or_else(|| value.get("toolName"))
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
+            let output = value
+                .get("output")
+                .or_else(|| value.get("result"))
+                .map(|v| match v {
+                    Value::String(s) => s.clone(),
+                    other => other.to_string(),
+                })
+                .unwrap_or_default();
+            let is_error = value
+                .get("is_error")
+                .or_else(|| value.get("isError"))
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            tool_end_events(id, name, output, is_error, ty)
         }
         "session" => {
             let id = value
@@ -329,34 +330,28 @@ fn parse_codex_item(value: &Value, completed: bool) -> Vec<Event> {
                 })
                 .unwrap_or_else(|| item_ty.to_string());
             if completed {
-                vec![Event::ToolResult {
-                    id,
-                    name,
-                    output: item
-                        .get("aggregated_output")
-                        .or_else(|| item.get("output"))
-                        .or_else(|| item.get("result"))
-                        .map(|v| match v {
-                            Value::String(s) => s.clone(),
-                            other => other.to_string(),
-                        })
-                        .unwrap_or_default(),
-                    is_error: item
-                        .get("exit_code")
-                        .and_then(|c| c.as_i64())
-                        .is_some_and(|c| c != 0)
-                        || item.get("status").and_then(|s| s.as_str()) == Some("failed"),
-                }]
+                let output = item
+                    .get("aggregated_output")
+                    .or_else(|| item.get("output"))
+                    .or_else(|| item.get("result"))
+                    .map(|v| match v {
+                        Value::String(s) => s.clone(),
+                        other => other.to_string(),
+                    })
+                    .unwrap_or_default();
+                let is_error = item
+                    .get("exit_code")
+                    .and_then(|c| c.as_i64())
+                    .is_some_and(|c| c != 0)
+                    || item.get("status").and_then(|s| s.as_str()) == Some("failed");
+                tool_end_events(id, name, output, is_error, item_ty)
             } else {
-                vec![Event::ToolCall {
-                    id,
-                    name,
-                    input: item
-                        .get("command")
-                        .or_else(|| item.get("arguments"))
-                        .cloned()
-                        .unwrap_or(Value::Null),
-                }]
+                let input = item
+                    .get("command")
+                    .or_else(|| item.get("arguments"))
+                    .cloned()
+                    .unwrap_or(Value::Null);
+                tool_start_events(id, name, input, item_ty)
             }
         }
         // Live Codex stream (2026): file writes/edits as file_change items, not command_execution.
@@ -369,17 +364,13 @@ fn parse_codex_item(value: &Value, completed: bool) -> Vec<Event> {
                 .unwrap_or_else(|| item.clone());
             if completed {
                 let failed = item.get("status").and_then(|s| s.as_str()) == Some("failed");
-                vec![Event::ToolResult {
-                    id,
-                    name,
-                    output: match &input {
-                        Value::String(s) => s.clone(),
-                        other => other.to_string(),
-                    },
-                    is_error: failed,
-                }]
+                let output = match &input {
+                    Value::String(s) => s.clone(),
+                    other => other.to_string(),
+                };
+                tool_end_events(id, name, output, failed, item_ty)
             } else {
-                vec![Event::ToolCall { id, name, input }]
+                tool_start_events(id, name, input, item_ty)
             }
         }
         "error" => vec![Event::Error {
@@ -484,6 +475,48 @@ fn parse_session_update(value: &Value) -> Vec<Event> {
     }
 }
 
+/// General tool start: PreToolUse then ToolCall (shared Wait surface).
+pub(crate) fn tool_start_events(id: String, name: String, input: Value, phase: &str) -> Vec<Event> {
+    vec![
+        Event::HookStarted {
+            id: id.clone(),
+            name: "PreToolUse".into(),
+            phase: Some(phase.to_string()),
+            detail: Some(serde_json::json!({ "tool": name, "input": input })),
+        },
+        Event::ToolCall { id, name, input },
+    ]
+}
+
+/// General tool end: ToolResult then PostToolUse.
+pub(crate) fn tool_end_events(
+    id: String,
+    name: String,
+    output: String,
+    is_error: bool,
+    phase: &str,
+) -> Vec<Event> {
+    vec![
+        Event::ToolResult {
+            id: id.clone(),
+            name: name.clone(),
+            output: output.clone(),
+            is_error,
+        },
+        Event::HookFinished {
+            id,
+            name: "PostToolUse".into(),
+            phase: Some(phase.to_string()),
+            ok: !is_error,
+            detail: Some(if name.is_empty() {
+                output
+            } else {
+                format!("{name}: {output}")
+            }),
+        },
+    ]
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -504,12 +537,22 @@ mod tests {
             &json!({"type":"tool_use","id":"1","name":"bash","arguments":{"x":1}}),
             "t",
         );
-        assert!(matches!(e.first(), Some(Event::ToolCall { name, .. }) if name == "bash"));
+        assert!(e
+            .iter()
+            .any(|x| matches!(x, Event::HookStarted { name, .. } if name == "PreToolUse")));
+        assert!(e
+            .iter()
+            .any(|x| matches!(x, Event::ToolCall { name, .. } if name == "bash")));
         let e = parse_common_json(
             &json!({"type":"function_call_output","toolCallId":"1","result":"ok","isError":false}),
             "t",
         );
-        assert!(matches!(e.first(), Some(Event::ToolResult { output, .. }) if output == "ok"));
+        assert!(e
+            .iter()
+            .any(|x| matches!(x, Event::ToolResult { output, .. } if output == "ok")));
+        assert!(e
+            .iter()
+            .any(|x| matches!(x, Event::HookFinished { name, .. } if name == "PostToolUse")));
         let e = parse_common_json(&json!({"type":"session","sessionId":"s9"}), "t");
         assert!(matches!(e.first(), Some(Event::SessionInfo { id, .. }) if id == "s9"));
         let e = parse_common_json(&json!({"type":"error","error":{"code":1}}), "t");
@@ -607,7 +650,12 @@ mod tests {
             }),
             "codex",
         );
-        assert!(matches!(e.first(), Some(Event::ToolCall { name, .. }) if name == "bash"));
+        assert!(e
+            .iter()
+            .any(|x| matches!(x, Event::HookStarted { name, .. } if name == "PreToolUse")));
+        assert!(e
+            .iter()
+            .any(|x| matches!(x, Event::ToolCall { name, .. } if name == "bash")));
         let e = parse_common_json(
             &json!({
                 "type":"item.completed",
@@ -615,9 +663,11 @@ mod tests {
             }),
             "codex",
         );
-        assert!(matches!(
-            e.first(),
-            Some(Event::ToolResult { is_error: true, .. })
+        assert!(e
+            .iter()
+            .any(|x| matches!(x, Event::ToolResult { is_error: true, .. })));
+        assert!(e.iter().any(
+            |x| matches!(x, Event::HookFinished { name, ok: false, .. } if name == "PostToolUse")
         ));
         let e = parse_common_json(
             &json!({"type":"item.completed","item":{"id":"i","type":"message","content":"hi"}}),
@@ -638,10 +688,14 @@ mod tests {
             "codex",
         );
         assert!(
-            matches!(e.first(), Some(Event::ToolCall { name, input, .. })
-                if name == "file_change" && input.to_string().contains("note.txt")),
+            e.iter()
+                .any(|x| matches!(x, Event::ToolCall { name, input, .. }
+                if name == "file_change" && input.to_string().contains("note.txt"))),
             "{e:?}"
         );
+        assert!(e
+            .iter()
+            .any(|x| matches!(x, Event::HookStarted { name, .. } if name == "PreToolUse")));
         let e = parse_common_json(
             &json!({
                 "type":"item.completed",
@@ -655,10 +709,15 @@ mod tests {
             "codex",
         );
         assert!(
-            matches!(e.first(), Some(Event::ToolResult { name, is_error: false, .. })
-                if name == "file_change"),
+            e.iter().any(
+                |x| matches!(x, Event::ToolResult { name, is_error: false, .. }
+                if name == "file_change")
+            ),
             "{e:?}"
         );
+        assert!(e
+            .iter()
+            .any(|x| matches!(x, Event::HookFinished { name, .. } if name == "PostToolUse")));
         let e = parse_common_json(
             &json!({"type":"item.completed","item":{"id":"i","type":"error","message":"boom"}}),
             "codex",

@@ -7,13 +7,17 @@
 //
 // Daily QA loop:
 //   1. Confirm `aider --help` works and your model credentials are set.
-//   2. Set model below (or via env expected by Aider).
+//   2. Set model below (required when no Aider defaults/keys exist).
 //   3. medon run examples/harnesses/aider.rhai --print
+//
+// Tools/hooks: not on this path — wait_tool / wait_hook fail closed
+// (capability not supported). See examples/harnesses/aider_no_tools.rhai.
 //
 // Note: multi_turn continuity uses a chat history file path as session id.
 
 let s = launch("aider", #{
-    // model: "provider/model-id",
+    // Required for non-interactive headless: provider/model your keys support.
+    // model: "openrouter/auto",
     no_git: true,
     multi_turn: true,
     timeout_ms: 180_000

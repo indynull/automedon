@@ -264,3 +264,29 @@ pub fn check_wait(wait: &Wait) -> Result<()> {
     }
     Ok(())
 }
+
+/// True when this wait (or nested any/all) needs stream tool events.
+pub fn wait_needs_tools(wait: &Wait) -> bool {
+    condition_needs_tools(&wait.condition)
+}
+
+/// True when this wait needs hook lifecycle events.
+pub fn wait_needs_hooks(wait: &Wait) -> bool {
+    condition_needs_hooks(&wait.condition)
+}
+
+fn condition_needs_tools(c: &WaitCondition) -> bool {
+    match c {
+        WaitCondition::On(p) => {
+            matches!(p, Predicate::ToolCall { .. } | Predicate::ToolResult { .. })
+        }
+        WaitCondition::Any(cs) | WaitCondition::All(cs) => cs.iter().any(condition_needs_tools),
+    }
+}
+
+fn condition_needs_hooks(c: &WaitCondition) -> bool {
+    match c {
+        WaitCondition::On(p) => matches!(p, Predicate::Hook { .. }),
+        WaitCondition::Any(cs) | WaitCondition::All(cs) => cs.iter().any(condition_needs_hooks),
+    }
+}
