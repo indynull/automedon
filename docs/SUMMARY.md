@@ -5,6 +5,7 @@
 # Guide
 
 - [Getting started](getting-started.md)
+- [Testing your harness (QA)](qa-playbook.md)
 - [Write a script](first-script.md)
 - [How it works](concepts.md)
 - [Command line](cli.md)

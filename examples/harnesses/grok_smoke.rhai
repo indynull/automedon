@@ -1,5 +1,5 @@
-// One-turn Grok Build smoke.
-// Requires: `grok` on PATH and product authentication.
+// One-turn smoke: Grok Build
+// Binary: grok | Auth: Grok login | Stream: streaming-json
 //
 //   medon run examples/harnesses/grok_smoke.rhai --print
 
@@ -11,8 +11,7 @@ let s = launch("grok", #{
 s.prompt("Reply with exactly one line: AUTOMEDON_SMOKE");
 s.expect(timeout_ms(text("AUTOMEDON_SMOKE"), 90_000));
 s.await_turn();
-
-print(`harness=${s.harness()} session=${s.session_id()} text=${s.text()}`);
 assert_contains(s.text(), "AUTOMEDON_SMOKE");
+print(`session=${s.session_id()} text=${s.text()}`);
 s.close();
 "SMOKE_OK"

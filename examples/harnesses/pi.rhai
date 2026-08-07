@@ -1,8 +1,16 @@
-// Multi-turn Pi (`--mode json`, session id / continue).
-// Requires: `pi` on PATH and Pi provider credentials for your account.
-// Optional launch extras: provider, model, extension / extensions.
+// Multi-turn smoke: Pi
 //
-//   medon run examples/harnesses/pi.rhai --print
+// Binary:     pi
+// Auth:       Pi provider credentials for your account
+// Stream:     -p --mode json
+// Multi-turn: --session-id / --continue
+//
+// Daily QA loop:
+//   1. Confirm `pi` works outside Automedon (login / one-shot prompt).
+//   2. medon run examples/harnesses/pi.rhai --print
+//   3. Expect AUTOMEDON_T1 then AUTOMEDON_T2; print session id after turn 1.
+//
+// Optional: raise timeout_ms for slow models; set model/cwd in the launch map.
 
 let s = launch("pi", #{
     yolo: true,
@@ -17,5 +25,11 @@ print(`turn1 session=${s.session_id()}`);
 
 s.prompt("Reply with exactly: AUTOMEDON_T2 and nothing else");
 s.expect(timeout_ms(text("AUTOMEDON_T2"), 120_000));
-print(`done session=${s.session_id()} text=${s.text()}`);
+s.await_turn();
+
+let t = s.text();
+assert_contains(t, "AUTOMEDON_T1");
+assert_contains(t, "AUTOMEDON_T2");
+print(`turn2 session=${s.session_id()} text=${t}`);
 s.close();
+"OK"

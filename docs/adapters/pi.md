@@ -4,7 +4,10 @@
 |--|--|
 | Adapter id | `pi` |
 | Binary | `pi` |
+| Auth | Pi provider credentials for your account |
+| Stream | `-p` + `--mode json` |
 | Multi-turn | `--session-id` / `--continue` |
+| Yolo maps to | `--approve` |
 | Example | `examples/harnesses/pi.rhai` |
 
 ## Launch
@@ -14,17 +17,24 @@ let s = launch("pi", #{
     yolo: true,
     multi_turn: true,
     timeout_ms: 180_000
+    // provider: "…",
+    // model: "…",
 });
 ```
 
-Optional extras:
+| Extra | Meaning |
+|-------|---------|
+| `provider` | Pi provider id |
+| `model` | Model id |
+| `tools` / `exclude_tools` | Tool allow/deny lists |
+| `extension` / `extensions` | Extension paths |
 
-| Key | Meaning |
-|-----|---------|
-| `provider` | Pi provider id for your account |
-| `model` | Model id string |
-| `extension` / `extensions` | Pi extension paths |
+Tool lifecycle maps to `ToolCall` + hooks (`PreToolUse` / `PostToolUse`). Tools smoke: `examples/harnesses/pi_tools.rhai`.
 
-Tool lifecycle events map to `ToolCall` / hooks (`PreToolUse`, `PostToolUse`). See `examples/harnesses/pi_tools.rhai`.
+## Daily smoke
 
-Requires `pi` on `PATH` and whatever provider credentials Pi expects for your setup.
+```bash
+pi -p "say hi only" --mode json
+medon run examples/harnesses/pi.rhai --print
+medon run examples/harnesses/pi_tools.rhai --print
+```

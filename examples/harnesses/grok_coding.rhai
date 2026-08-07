@@ -1,5 +1,5 @@
-// Multi-turn Grok: implement a tiny Python module, then tests.
-// Requires: `grok` on PATH and product authentication.
+// Multi-turn coding task: Grok Build
+// Binary: grok | Auth: Grok login | Stream: streaming-json
 // Writes under examples/automedon_demo/ (gitignored).
 //
 //   medon run examples/harnesses/grok_coding.rhai --print

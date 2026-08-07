@@ -1,51 +1,58 @@
 # Adapters
 
-An **adapter** is the only place that knows a product’s binary name, flags, and stream shape. Everything else in Automedon speaks in shared events and waits.
+An **adapter** is the only place that knows a product’s binary name, flags, and stream shape. Everything else speaks shared events and waits.
 
-## Choosing a harness
+List what this build implements:
 
-Install the product CLI, complete **its** login, then point `launch("…")` at the adapter id.
+```bash
+medon adapters
+```
 
-| Id | CLI on `PATH` | Multi-turn | First script |
-|----|---------------|------------|--------------|
-| `grok` | `grok` | `--resume`; optional ACP | [Grok](grok.md) · `examples/harnesses/grok.rhai` |
-| `pi` | `pi` | session id / continue | [Pi](pi.md) · `examples/harnesses/pi.rhai` |
-| `aider` | `aider` | chat-history restore | [Aider](aider.md) |
-| `copilot` | `copilot` | resume footer | [Copilot](copilot.md) |
-| `claude` | `claude` | resume / continue | [Claude](claude.md) |
-| `codex` | `codex` | exec resume | [Codex](codex.md) |
-| `opencode` | `opencode` | session / continue | [OpenCode](opencode.md) |
-| `cursor` | `agent` / `cursor-agent` / `cursor` | resume / continue | [Cursor](cursor.md) |
-| `gemini` | `gemini` or `agy` | `-r` resume | [Gemini](gemini.md) |
-| `mock` | (none) | scenarios | offline only — `examples/mock/` |
-| `generic` | your `bin` | process exit | escape hatch |
+## Product catalog
 
-Expand a product page in the sidebar for launch options. Runtime flags: `medon adapters`. Full matrix: [Capability matrix](../matrix.md).
+| Id | Default binary | Multi-turn | Daily smoke |
+|----|----------------|------------|-------------|
+| `claude` | `claude` | `--resume` / `--continue` | [Claude](claude.md) · `examples/harnesses/claude.rhai` |
+| `codex` | `codex` | `exec resume` | [Codex](codex.md) · `examples/harnesses/codex.rhai` |
+| `gemini` | `gemini` / `agy` | `-r` resume | [Gemini](gemini.md) · `examples/harnesses/gemini.rhai` |
+| `opencode` | `opencode` | `--session` / `--continue` | [OpenCode](opencode.md) · `examples/harnesses/opencode.rhai` |
+| `grok` | `grok` | `--resume` / `--continue` | [Grok](grok.md) · `examples/harnesses/grok.rhai` |
+| `cursor` | `agent` / `cursor-agent` / `cursor` | `--resume` / `--continue` | [Cursor](cursor.md) · `examples/harnesses/cursor.rhai` |
+| `aider` | `aider` | chat-history restore | [Aider](aider.md) · `examples/harnesses/aider.rhai` |
+| `pi` | `pi` | `--session-id` / `--continue` | [Pi](pi.md) · `examples/harnesses/pi.rhai` |
+| `copilot` | `copilot` | `--resume=` / `--continue` | [Copilot](copilot.md) · `examples/harnesses/copilot.rhai` |
+| `mock` | (in-process) | scenarios | `examples/mock/` |
+| `generic` | `opts.bin` | process exit | escape hatch |
 
-## Launch extras (shared map)
+Feature columns: [Capability matrix](../matrix.md). Vendor QA workflow: [Testing your harness (QA)](../qa-playbook.md).
 
-Pass product knobs in the Rhai map / `LaunchOptions.extra`:
+## Launch extras
 
 | Key | Typical use |
 |-----|-------------|
-| `acp` | Long-lived stdio agent path (Grok, Codex, OpenCode, Copilot, Gemini when supported) |
+| `yolo` | Map to product allow-all / skip-permission flags |
+| `model` | Model id |
+| `timeout_ms` | Default wait/expect timeout (ms) |
+| `cwd` | Child working directory |
+| `bin` / `binary` | Override binary path |
+| `acp` | Long-lived ACP / agent stdio path when the product supports it |
 | `provider` | Pi provider id |
-| `model` | Model id (`LaunchOptions.model` or extra) |
 | `chat_history_file` | Aider history path |
 | `extension` / `extensions` | Pi extensions |
-| `binary` | Override binary for Cursor / Gemini |
-| `yolo` | Map to the product’s allow-all / skip-permission flags when the adapter knows them |
+| `scenario` | Mock only |
 
 ## Minimal multi-turn pattern
 
 ```rust
-let s = launch("grok", #{ yolo: true, multi_turn: true, timeout_ms: 180_000 });
-s.prompt("Reply with exactly: AUTOMEDON_T1");
+let s = launch("claude", #{ yolo: true, multi_turn: true, timeout_ms: 180_000 });
+s.prompt("Reply with exactly: AUTOMEDON_T1 and nothing else");
 s.expect(timeout_ms(text("AUTOMEDON_T1"), 120_000));
 s.await_turn();
-s.prompt("Reply with exactly: AUTOMEDON_T2");
+print(s.session_id());
+s.prompt("Reply with exactly: AUTOMEDON_T2 and nothing else");
 s.expect(timeout_ms(text("AUTOMEDON_T2"), 120_000));
+s.await_turn();
 s.close();
 ```
 
-Every product script under `examples/harnesses/` follows that shape. See [Examples](../examples.md).
+Every `examples/harnesses/*.rhai` multi-turn smoke follows this shape.

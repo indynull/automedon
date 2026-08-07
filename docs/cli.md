@@ -9,20 +9,22 @@ medon --help
 
 Errors print as `medon: …` on stderr with a non-zero exit code.
 
-## `medon run`
+## `medon adapters`
 
-Run a Rhai script file.
+Operator table: name, default binary, capabilities, multi-turn mechanism, and pointers to examples.
+
+```bash
+medon adapters
+```
+
+## `medon run`
 
 ```bash
 medon run path/to/script.rhai
-medon run path/to/script.rhai --print   # also print the script’s return value
+medon run path/to/script.rhai --print   # also print the script return value
 ```
 
-Fails if the path is missing or the script errors (timeout, failed assert, harness error).
-
 ## `medon eval`
-
-Evaluate a short snippet (useful for smoke checks):
 
 ```bash
 medon eval 'let s = launch("mock", #{ scenario: "echo" }); s.run("z")'
@@ -30,48 +32,24 @@ medon eval 'let s = launch("mock", #{ scenario: "echo" }); s.run("z")'
 
 ## `medon shot`
 
-One-shot prompt without a script file (Rust `run` path).
+One-shot without a script file:
 
 ```bash
 medon shot mock "hello" --scenario echo
-medon shot grok "say hi only" --yolo
-medon shot pi "list files" --yolo --model "your-model" --cwd /path/to/workspace
+medon shot claude "say hi only" --yolo --timeout-ms 120000
+medon shot grok "say hi" --yolo --cwd /path/to/workspace
 ```
 
 | Flag | Meaning |
 |------|---------|
-| `--yolo` | Map to the product’s allow-all / skip-permission flags when the adapter supports it |
+| `--yolo` | Product allow-all / skip-permission flags |
 | `--model` | Model id |
-| `--cwd` | Working directory for the child |
-| `--scenario` | **Mock only:** `echo`, `multi`, `tools`, `hooks`, `permission`, `plan`, `goal`, `think`, `error` |
-
-On non-zero child exit, `shot` fails.
-
-## `medon adapters`
-
-Prints a capability table for product harnesses, then infrastructure adapters:
-
-```text
-NAME       LAUNCH  MULTI  TOOLS  SESSIONS  ACP  YOLO
-claude     yes     yes    yes    yes       —    yes
-…
-```
-
-| Column | Meaning |
-|--------|---------|
-| LAUNCH | Adapter can prepare a process or in-process session |
-| MULTI | Multi-turn continuity implemented |
-| TOOLS | Tool events on the stream |
-| SESSIONS | Session / resume id handling |
-| ACP | ACP / long-lived stdio path available (`extra.acp` where required) |
-| YOLO | Preflight auto-approve flags mapped |
-
-`yes` means the **driver implements** the surface. You still need the product CLI and auth for a live run.
+| `--cwd` | Child working directory |
+| `--timeout-ms` | Default wait/expect timeout |
+| `--scenario` | Mock only: `echo`, `multi`, `tools`, `hooks`, `permission`, `plan`, `goal`, `think`, `error` |
 
 ## Logging
 
-Uses `tracing`. Example:
-
 ```bash
-RUST_LOG=automedon=debug medon run examples/mock/smoke.rhai --print
+RUST_LOG=automedon=debug medon run examples/harnesses/claude.rhai --print
 ```

@@ -33,23 +33,26 @@ enum Commands {
         /// Rhai source.
         source: String,
     },
-    /// List built-in harness adapters.
+    /// List product adapters, capabilities, binaries, and multi-turn mechanisms.
     Adapters,
     /// One-shot prompt against a harness (Rust path, no script file).
     Shot {
-        /// Harness name: grok, pi, claude, mock, generic.
+        /// Adapter id: claude, codex, gemini, opencode, grok, cursor, aider, pi, copilot, mock, generic.
         harness: String,
         /// Prompt text.
         prompt: String,
-        /// Auto-approve tools where supported.
+        /// Auto-approve tools where supported (maps to product yolo/allow-all flags).
         #[arg(long)]
         yolo: bool,
         /// Model id.
         #[arg(long)]
         model: Option<String>,
-        /// Working directory.
+        /// Working directory for the child process.
         #[arg(long)]
         cwd: Option<PathBuf>,
+        /// Default wait/expect timeout in milliseconds (product CLIs often need 60_000–180_000).
+        #[arg(long)]
+        timeout_ms: Option<u64>,
         /// Mock scenario (mock only): echo, multi, tools, hooks, permission, plan, goal, think, error.
         #[arg(long)]
         scenario: Option<String>,
@@ -82,34 +85,43 @@ async fn try_main() -> Result<()> {
     let cli = Cli::parse();
     match cli.command {
         Commands::Adapters => {
+            use automedon::adapter::AdapterKind;
+            println!("Product adapters (driver surface — still need product CLI + auth for live runs)\n");
             println!(
-                "{:<10} {:<7} {:<7} {:<7} {:<9} {:<5} {:<5}",
-                "NAME", "LAUNCH", "MULTI", "TOOLS", "SESSIONS", "ACP", "YOLO"
+                "{:<10} {:<28} {:<6} {:<6} {:<6} {:<5}  {}",
+                "NAME", "BINARY", "LAUNCH", "MULTI", "TOOLS", "ACP", "MULTI-TURN"
             );
             for name in automedon::adapter::product_names() {
+                let kind = AdapterKind::parse(name)?;
                 let a = automedon::resolve(name)?;
                 let c = a.capabilities();
                 println!(
-                    "{name:<10} {:<7} {:<7} {:<7} {:<9} {:<5} {:<5}",
+                    "{name:<10} {:<28} {:<6} {:<6} {:<6} {:<5}  {}",
+                    kind.default_binaries(),
                     yn(c.launch),
                     yn(c.multi_turn),
                     yn(c.stream_tools),
-                    yn(c.sessions),
                     yn(c.acp),
-                    yn(c.yolo),
+                    kind.multi_turn_summary(),
                 );
             }
             println!();
-            println!("Infrastructure (not product delivery):");
+            println!("Infrastructure:");
             for name in ["mock", "generic"] {
+                let kind = AdapterKind::parse(name)?;
                 let a = automedon::resolve(name)?;
                 let c = a.capabilities();
                 println!(
-                    "  {name:<8} in_process={} launch={}",
+                    "  {name:<8} binary={}  in_process={}  launch={}",
+                    kind.default_binaries(),
                     yn(c.in_process),
                     yn(c.launch)
                 );
             }
+            println!();
+            println!("Examples:  medon run examples/mock/smoke.rhai --print");
+            println!("           medon run examples/harnesses/<name>.rhai --print");
+            println!("Docs:      handbook adapters + MATRIX.md");
         }
         Commands::Run { script, print } => {
             if !script.exists() {
@@ -133,6 +145,7 @@ async fn try_main() -> Result<()> {
             yolo,
             model,
             cwd,
+            timeout_ms,
             scenario,
         } => {
             let mut opts = automedon::LaunchOptions {
@@ -141,6 +154,9 @@ async fn try_main() -> Result<()> {
                 cwd,
                 ..Default::default()
             };
+            if let Some(ms) = timeout_ms {
+                opts.default_timeout = Some(std::time::Duration::from_millis(ms));
+            }
             if let Some(sc) = scenario {
                 opts.extra.insert("scenario".into(), serde_json::json!(sc));
             }

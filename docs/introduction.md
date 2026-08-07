@@ -1,8 +1,6 @@
 # Introduction
 
-Automedon is a **driver** for local AI coding-agent CLIs. It does not replace Claude Code, Grok Build, Codex, or Pi — it spawns those tools, normalizes their streams, and gives you one API to wait, assert, and multi-turn.
-
-Use it when you want **scripts or tests** that talk to a real agent the same way every time: launch, prompt, wait for a tool or a marker, resume the next turn, close.
+**Automedon** is a production driver for **local AI coding-agent CLIs**. Teams use it to automate multi-turn checks against the real product binary — the same path a customer script would use — without inventing a bespoke shell harness per vendor.
 
 | Piece | Name |
 |-------|------|
@@ -10,31 +8,31 @@ Use it when you want **scripts or tests** that talk to a real agent the same way
 | CLI | **`medon`** |
 | Scripts | Rhai (`.rhai`) or the Rust API |
 
-## What you get
+It spawns the product CLI, normalizes its stream into events, and blocks until waits/expects match. It does **not** reimplement agents, score answers with an LLM judge, or perform product login for you.
 
-- **One session model** — `prompt` → events → `expect` / `wait` → `await_turn` → next turn  
-- **Specialized adapters** — product-specific argv and JSON parsing live behind one interface  
-- **Offline mock** — full multi-turn / tools / hooks without a product CLI  
-- **Honest capabilities** — if interactive approve is not implemented, the call fails clearly  
+## Who this is for
 
-## What you still own
+| Audience | Start here |
+|----------|------------|
+| Vendor QA / harness engineers | [Testing your harness (QA)](qa-playbook.md) |
+| First install | [Getting started](getting-started.md) |
+| Writing automation | [Write a script](first-script.md) |
+| Embedding in a test binary | [Rust API](rust-api.md) |
+| Per-product flags | [Adapters](adapters/index.md) |
 
-- Installing and authenticating each product CLI  
-- Choosing models and provider settings for that product  
-- Deciding what “done” means in your script (text markers, tools, exit codes)
+## Supported product adapters
 
-## Paths through this handbook
+`claude` · `codex` · `gemini` · `opencode` · `grok` · `cursor` · `aider` · `pi` · `copilot`
+
+Plus offline `mock` and escape-hatch `generic`. Capability detail: [matrix](matrix.md).
+
+## Paths through the handbook
 
 | Goal | Page |
 |------|------|
-| Install `medon` and run offline | [Getting started](getting-started.md) |
-| Learn the script pattern | [Write a script](first-script.md) |
-| Understand sessions and events | [How it works](concepts.md) |
-| Full CLI reference | [Command line](cli.md) |
-| Full scripting surface | [Rhai scripts](rhai.md) |
-| Embed from Rust | [Rust API](rust-api.md) |
-| Pick a product adapter | [Adapters](adapters/index.md) |
-| See feature coverage | [Capability matrix](matrix.md) |
-| Copy ready-made scripts | [Examples](examples.md) |
-
-Internals (architecture, continuous integration) are under **Internals** in the sidebar.
+| Install and offline smoke | [Getting started](getting-started.md) |
+| Daily product regression | [Testing your harness (QA)](qa-playbook.md) |
+| Sessions, events, multi-turn | [How it works](concepts.md) |
+| Full CLI | [Command line](cli.md) |
+| Full script surface | [Rhai scripts](rhai.md) |
+| Ready-made scripts | [Examples](examples.md) |

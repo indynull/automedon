@@ -1,8 +1,10 @@
-// Pi tool lifecycle → PreToolUse / PostToolUse + tool waits.
-// Requires: `pi` on PATH and Pi provider credentials for your account.
-// Optional launch extras: provider, model.
+// Tools + hooks smoke: Pi
+// Binary: pi | Auth: Pi provider credentials
+// Stream: --mode json; tool lifecycle → PreToolUse / PostToolUse
 //
 //   medon run examples/harnesses/pi_tools.rhai --print
+//
+// Optional launch extras: provider, model, tools, extension
 
 let s = launch("pi", #{
     yolo: true,
@@ -20,6 +22,6 @@ s.wait(timeout_ms(wait_hook_finished("PostToolUse"), 120_000));
 s.wait(timeout_ms(wait_text("AUTOMEDON_HOOKS_DONE"), 120_000));
 s.wait(timeout_ms(wait_turn_complete(), 60_000));
 
-print(`WAIT_HOOKS_OK session=${s.session_id()} tools=${s.tool_names()}`);
+print(`OK session=${s.session_id()} tools=${s.tool_names()}`);
 s.close();
-"WAIT_HOOKS_OK"
+"OK"

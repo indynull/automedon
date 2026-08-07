@@ -63,6 +63,40 @@ impl AdapterKind {
     pub fn is_product(self) -> bool {
         !matches!(self, Self::Mock | Self::Generic)
     }
+
+    /// Default CLI binary names operators should have on `PATH` (display string).
+    pub fn default_binaries(self) -> &'static str {
+        match self {
+            Self::Claude => "claude",
+            Self::Codex => "codex",
+            Self::Gemini => "gemini (or agy)",
+            Self::OpenCode => "opencode",
+            Self::Grok => "grok",
+            Self::Cursor => "agent / cursor-agent / cursor",
+            Self::Aider => "aider",
+            Self::Pi => "pi",
+            Self::Copilot => "copilot",
+            Self::Mock => "(in-process)",
+            Self::Generic => "opts.bin",
+        }
+    }
+
+    /// Short multi-turn mechanism note for operators.
+    pub fn multi_turn_summary(self) -> &'static str {
+        match self {
+            Self::Claude => "--resume / --continue (stream-json)",
+            Self::Codex => "exec resume <id|--last> --json",
+            Self::Gemini => "-r / resume latest (stream-json)",
+            Self::OpenCode => "--session / --continue (json)",
+            Self::Grok => "--resume / --continue; ACP optional",
+            Self::Cursor => "--resume / --continue (stream-json)",
+            Self::Aider => "chat-history restore",
+            Self::Pi => "--session-id / --continue (json)",
+            Self::Copilot => "--resume=<id> / --continue (json)",
+            Self::Mock => "in-process scenarios",
+            Self::Generic => "process-per-prompt",
+        }
+    }
 }
 
 pub fn registry(kind: AdapterKind) -> Arc<dyn Adapter> {

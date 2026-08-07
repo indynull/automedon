@@ -4,7 +4,10 @@
 |--|--|
 | Adapter id | `codex` |
 | Binary | `codex` |
-| Multi-turn | `codex exec resume <thread_id>` + `--json` |
+| Auth | OpenAI / Codex login |
+| Stream | `codex exec --json` (JSONL events) |
+| Multi-turn | `codex exec resume <session_id\|--last> --json <prompt>` |
+| Yolo maps to | `--dangerously-bypass-approvals-and-sandbox` |
 | Example | `examples/harnesses/codex.rhai` |
 
 ## Launch
@@ -13,6 +16,11 @@
 let s = launch("codex", #{ yolo: true, multi_turn: true, timeout_ms: 180_000 });
 ```
 
-Multi-turn uses `codex exec resume <session_id| --last> --json <prompt>`.
+Session id comes from `thread.started` (`thread_id`). Optional ACP: `acp: true` (community ACP package via `npx`).
 
-Optional ACP prepare: `acp: true`. Requires OpenAI / Codex authentication.
+## Daily smoke
+
+```bash
+codex exec --json "say hi only"
+medon run examples/harnesses/codex.rhai --print
+```

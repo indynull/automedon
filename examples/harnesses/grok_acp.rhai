@@ -1,5 +1,5 @@
-// Multi-turn Grok via ACP (`grok agent stdio`).
-// Requires: `grok` on PATH and product authentication.
+// Multi-turn Grok via ACP (`grok agent stdio`)
+// Binary: grok | Auth: Grok login | Path: extra.acp = true
 //
 //   medon run examples/harnesses/grok_acp.rhai --print
 
@@ -16,5 +16,8 @@ print(`turn1 session=${s.session_id()}`);
 
 s.prompt("Reply with exactly: AUTOMEDON_T2 and nothing else");
 s.expect(timeout_ms(text("AUTOMEDON_T2"), 120_000));
-print(`done session=${s.session_id()} text=${s.text()}`);
+s.await_turn();
+assert_contains(s.text(), "AUTOMEDON_T1");
+assert_contains(s.text(), "AUTOMEDON_T2");
 s.close();
+"OK"

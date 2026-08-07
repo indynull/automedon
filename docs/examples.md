@@ -1,11 +1,9 @@
 # Examples
 
-Two directories only:
-
 | Path | Purpose |
 |------|---------|
-| [`examples/mock/`](https://github.com/indynull/automedon/tree/main/examples/mock) | Offline mock — no product CLI |
-| [`examples/harnesses/`](https://github.com/indynull/automedon/tree/main/examples/harnesses) | Real product adapters — CLI + auth |
+| `examples/mock/` | Offline mock — no product CLI |
+| `examples/harnesses/` | Real product adapters — CLI + auth |
 
 ## Offline
 
@@ -22,20 +20,11 @@ medon shot mock "hello" --scenario echo
 medon run examples/harnesses/<name>.rhai --print
 ```
 
-| Script | Adapter |
-|--------|---------|
-| `grok_smoke.rhai` | `grok` one-turn |
-| `grok.rhai` | `grok` multi-turn |
-| `grok_acp.rhai` | `grok` ACP |
-| `grok_coding.rhai` | `grok` small coding task |
-| `pi.rhai` | `pi` multi-turn |
-| `pi_tools.rhai` | `pi` tools + hooks |
-| `aider.rhai` | `aider` |
-| `copilot.rhai` | `copilot` |
-| `claude.rhai` | `claude` |
-| `codex.rhai` | `codex` |
-| `opencode.rhai` | `opencode` |
-| `cursor.rhai` | `cursor` |
-| `gemini.rhai` | `gemini` |
+Each multi-turn script:
 
-Multi-turn smokes use markers `AUTOMEDON_T1` then `AUTOMEDON_T2` so continuity is obvious in the transcript.
+- Documents binary, auth, stream, and multi-turn mechanism in the header  
+- Uses `AUTOMEDON_T1` → `AUTOMEDON_T2`  
+- Asserts both markers appear in the final transcript  
+- Prints `session_id` after turn 1  
+
+Full table: `examples/harnesses/README.md`. Daily loop: [Testing your harness (QA)](qa-playbook.md).

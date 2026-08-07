@@ -12,8 +12,23 @@ fn adapters_lists_mock() {
         .assert()
         .success()
         .stdout(predicate::str::contains("NAME"))
+        .stdout(predicate::str::contains("BINARY"))
+        .stdout(predicate::str::contains("MULTI-TURN"))
         .stdout(predicate::str::contains("grok"))
-        .stdout(predicate::str::contains("mock"));
+        .stdout(predicate::str::contains("claude"))
+        .stdout(predicate::str::contains("mock"))
+        .stdout(predicate::str::contains("examples/harnesses"));
+}
+
+#[test]
+fn adapters_lists_default_binaries() {
+    let out = medon().arg("adapters").output().unwrap();
+    let s = String::from_utf8_lossy(&out.stdout);
+    assert!(out.status.success());
+    // Operator-facing binary column from AdapterKind::default_binaries.
+    for needle in ["claude", "codex", "copilot", "cursor-agent", "gemini"] {
+        assert!(s.contains(needle), "missing {needle} in:\n{s}");
+    }
 }
 
 #[test]

@@ -1,26 +1,29 @@
 # Product harness examples
 
-One multi-turn smoke per specialized adapter (plus a few Grok/Pi extras).
-Each script needs that product’s CLI on `PATH` and normal product authentication.
+Multi-turn smokes for every specialized adapter. Each script header lists **binary**, **auth**, **stream flags**, and **multi-turn** mechanism.
 
 ```bash
 medon run examples/harnesses/<name>.rhai --print
 ```
 
-| Script | Adapter | Notes |
+| Script | Adapter | Proves |
 |--------|---------|--------|
-| `grok_smoke.rhai` | `grok` | One-turn text marker |
-| `grok.rhai` | `grok` | Multi-turn resume |
-| `grok_acp.rhai` | `grok` | `acp: true` → `grok agent stdio` |
-| `grok_coding.rhai` | `grok` | Multi-turn coding task under `examples/automedon_demo/` |
-| `pi.rhai` | `pi` | Multi-turn; optional `provider` / `model` extras |
-| `pi_tools.rhai` | `pi` | Wait on tools + Pre/PostToolUse hooks |
-| `aider.rhai` | `aider` | Chat-history multi-turn; set `model` for your backend |
-| `copilot.rhai` | `copilot` | Non-interactive path + resume footer |
-| `claude.rhai` | `claude` | stream-json + resume/continue |
-| `codex.rhai` | `codex` | `exec --json` + resume |
-| `opencode.rhai` | `opencode` | `run --format json` + session |
-| `cursor.rhai` | `cursor` | agent stream-json + resume |
-| `gemini.rhai` | `gemini` | stream-json + resume (`agy` preferred when present) |
+| `claude.rhai` | `claude` | multi-turn resume |
+| `codex.rhai` | `codex` | exec json + resume |
+| `copilot.rhai` | `copilot` | JSONL + resume id |
+| `cursor.rhai` | `cursor` | stream-json + resume |
+| `gemini.rhai` | `gemini` | stream-json + resume |
+| `grok.rhai` | `grok` | streaming-json + resume |
+| `grok_smoke.rhai` | `grok` | one-turn |
+| `grok_acp.rhai` | `grok` | ACP multi-turn |
+| `grok_coding.rhai` | `grok` | multi-turn coding task |
+| `opencode.rhai` | `opencode` | json + session |
+| `pi.rhai` | `pi` | multi-turn |
+| `pi_tools.rhai` | `pi` | tools + hooks |
+| `aider.rhai` | `aider` | history multi-turn |
 
-Scripts ask for markers `AUTOMEDON_T1` then `AUTOMEDON_T2` so multi-turn continuity is obvious.
+Markers: `AUTOMEDON_T1` then `AUTOMEDON_T2`. Transcript must contain both after turn 2.
+
+**Before Automedon:** confirm the product CLI alone accepts a one-shot prompt with your login.
+
+Vendor workflow: [docs/qa-playbook.md](../../docs/qa-playbook.md).
