@@ -67,7 +67,7 @@ See [Waiting on the stream](waits.md).
 Each adapter advertises what its **driver implements**. Missing features fail closed (for example interactive `approve` when there is no mid-flight control path).
 
 ```bash
-medon adapters
+automedon adapters
 ```
 
 Per-adapter detail: [Adapters](adapters/index.md).

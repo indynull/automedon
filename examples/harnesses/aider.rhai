@@ -8,7 +8,7 @@
 // Daily QA loop:
 //   1. Confirm `aider --help` works and your model credentials are set.
 //   2. Set model below (required when no Aider defaults/keys exist).
-//   3. medon run examples/harnesses/aider.rhai --print
+//   3. automedon run examples/harnesses/aider.rhai --print
 //
 // Tools/hooks: not on this path — wait_tool / wait_hook fail closed
 // (capability not supported). See examples/harnesses/aider_no_tools.rhai.

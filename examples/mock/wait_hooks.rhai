@@ -1,5 +1,5 @@
 // Offline waits on hooks + tools (mock only).
-// medon run examples/mock/wait_hooks.rhai --print
+// automedon run examples/mock/wait_hooks.rhai --print
 
 let s = launch("mock", #{ scenario: "hooks", timeout_ms: 10_000 });
 s.prompt("ping");

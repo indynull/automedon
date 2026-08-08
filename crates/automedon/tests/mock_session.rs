@@ -544,7 +544,6 @@ async fn rhai_dsl_tools() {
     automedon::dsl::eval_str(src).unwrap();
 }
 
-
 #[tokio::test(flavor = "multi_thread")]
 async fn wait_fails_closed_on_harness_error() {
     use std::path::PathBuf;
@@ -589,11 +588,26 @@ fn wait_needs_tools_and_hooks_helpers() {
     assert!(wait_needs_hooks(&Wait::hook_finished("PostToolUse")));
     assert!(wait_needs_hooks(&Wait::hook("PreToolUse")));
     assert!(!wait_needs_hooks(&Wait::text("x")));
-    assert!(wait_needs_tools(&Wait::any([Wait::tool_any(), Wait::text("x")])));
-    assert!(wait_needs_hooks(&Wait::any([Wait::hook_any(), Wait::text("x")])));
-    assert!(wait_needs_tools(&Wait::all([Wait::tool_any(), Wait::text("x")])));
-    assert!(wait_needs_hooks(&Wait::all([Wait::hook_any(), Wait::text("x")])));
-    assert!(!wait_needs_tools(&Wait::all([Wait::text("a"), Wait::text("b")])));
+    assert!(wait_needs_tools(&Wait::any([
+        Wait::tool_any(),
+        Wait::text("x")
+    ])));
+    assert!(wait_needs_hooks(&Wait::any([
+        Wait::hook_any(),
+        Wait::text("x")
+    ])));
+    assert!(wait_needs_tools(&Wait::all([
+        Wait::tool_any(),
+        Wait::text("x")
+    ])));
+    assert!(wait_needs_hooks(&Wait::all([
+        Wait::hook_any(),
+        Wait::text("x")
+    ])));
+    assert!(!wait_needs_tools(&Wait::all([
+        Wait::text("a"),
+        Wait::text("b")
+    ])));
 }
 
 #[test]
@@ -614,9 +628,13 @@ fn copilot_and_opencode_live_tool_lifecycle_unit() {
     let done = c.parse_line(
         r#"{"type":"tool.execution_complete","data":{"toolCallId":"t1","toolName":"bash","success":true,"result":{"content":"hi\n"}}}"#,
     );
-    assert!(done
-        .iter()
-        .any(|e| matches!(e, Event::ToolResult { is_error: false, .. })));
+    assert!(done.iter().any(|e| matches!(
+        e,
+        Event::ToolResult {
+            is_error: false,
+            ..
+        }
+    )));
     assert!(done
         .iter()
         .any(|e| matches!(e, Event::HookFinished { name, ok: true, .. } if name == "PostToolUse")));
@@ -631,9 +649,7 @@ fn copilot_and_opencode_live_tool_lifecycle_unit() {
     assert!(live
         .iter()
         .any(|e| matches!(e, Event::ToolCall { name, .. } if name == "bash")));
-    assert!(live
-        .iter()
-        .any(|e| matches!(e, Event::ToolResult { .. })));
+    assert!(live.iter().any(|e| matches!(e, Event::ToolResult { .. })));
     assert!(live
         .iter()
         .any(|e| matches!(e, Event::HookFinished { name, .. } if name == "PostToolUse")));

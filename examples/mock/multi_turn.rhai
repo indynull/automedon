@@ -1,5 +1,5 @@
 // Offline multi-turn + permission / plan / goal (mock only).
-// medon run examples/mock/multi_turn.rhai --print
+// automedon run examples/mock/multi_turn.rhai --print
 
 // --- multi-turn continuity ---
 let s = launch("mock", #{ scenario: "multi", timeout_ms: 10_000 });

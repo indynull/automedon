@@ -2,7 +2,7 @@
 // Binary: gemini | Path: extra.acp = true
 // Requires working Gemini / Antigravity auth.
 //
-//   medon run examples/harnesses/gemini_acp.rhai --print
+//   automedon run examples/harnesses/gemini_acp.rhai --print
 
 let s = launch("gemini", #{
     yolo: true,

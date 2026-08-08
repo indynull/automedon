@@ -29,7 +29,7 @@ s.close();
 ```
 
 ```bash
-medon run examples/harnesses/grok.rhai --print
+automedon run examples/harnesses/grok.rhai --print
 ```
 
 Other ready scripts: Pi (`pi_workspace.rhai`), Claude (`claude.rhai`), and the rest under

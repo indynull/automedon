@@ -22,9 +22,9 @@ Useful extras: `model`, `max_turns`, `allowed_tools`, `permission_mode`, `settin
 
 ```bash
 claude -p "hi" --output-format text   # product alone
-medon run examples/harnesses/claude.rhai --print
+automedon run examples/harnesses/claude.rhai --print
 # multi-turn + tools:
-medon run examples/harnesses/claude_workspace.rhai --print
+automedon run examples/harnesses/claude_workspace.rhai --print
 ```
 
 Markers script: `AUTOMEDON_T1` then `AUTOMEDON_T2`, and a `session_id` after turn 1.

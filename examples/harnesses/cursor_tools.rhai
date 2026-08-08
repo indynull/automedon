@@ -1,7 +1,7 @@
 // Tools + hooks smoke: Cursor
 // Binary: cursor-agent | Stream: tool_call shell/edit → Pre/PostToolUse
 //
-//   medon run examples/harnesses/cursor_tools.rhai --print
+//   automedon run examples/harnesses/cursor_tools.rhai --print
 
 let s = launch("cursor", #{
     yolo: true,

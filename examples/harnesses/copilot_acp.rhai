@@ -1,7 +1,7 @@
 // Multi-turn Copilot via ACP (`copilot --acp`)
 // Binary: copilot | Path: extra.acp = true
 //
-//   medon run examples/harnesses/copilot_acp.rhai --print
+//   automedon run examples/harnesses/copilot_acp.rhai --print
 
 let s = launch("copilot", #{
     yolo: true,

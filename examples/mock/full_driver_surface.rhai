@@ -1,7 +1,7 @@
 // Offline tour of every Rhai driver method and expect/wait constructor.
 // No product binary. Primary method→script matrix entry for the full surface.
 //
-//   medon run examples/mock/full_driver_surface.rhai --print
+//   automedon run examples/mock/full_driver_surface.rhai --print
 //
 // Markers: FULL_DRIVER_SURFACE_OK
 

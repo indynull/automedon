@@ -23,8 +23,8 @@ Override binary with `binary: "cursor-agent"` when needed.
 
 ```bash
 cursor-agent -p "hi" --output-format text --force
-medon run examples/harnesses/cursor.rhai --print
-medon run examples/harnesses/cursor_workspace.rhai --print
+automedon run examples/harnesses/cursor.rhai --print
+automedon run examples/harnesses/cursor_workspace.rhai --print
 ```
 
 Always prefer the **`cursor-agent`** name. On machines with Grok Build, bare `agent`

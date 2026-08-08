@@ -1,7 +1,7 @@
 // Tools + hooks smoke: Codex
 // Binary: codex | Stream: exec --json item frames → Pre/PostToolUse
 //
-//   medon run examples/harnesses/codex_tools.rhai --print
+//   automedon run examples/harnesses/codex_tools.rhai --print
 
 let s = launch("codex", #{
     yolo: true,

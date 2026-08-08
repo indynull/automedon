@@ -2,7 +2,7 @@
 // Binary: grok | Auth: Grok Build credentials
 // Stream: streaming-json; tool_call / tool_call_update → PreToolUse / PostToolUse
 //
-//   medon run examples/harnesses/grok_tools.rhai --print
+//   automedon run examples/harnesses/grok_tools.rhai --print
 
 let s = launch("grok", #{
     yolo: true,

@@ -2,7 +2,7 @@
 // Binary: grok | Auth: Grok login | Stream: streaming-json
 // Writes under examples/automedon_demo/ (gitignored).
 //
-//   medon run examples/harnesses/grok_coding.rhai --print
+//   automedon run examples/harnesses/grok_coding.rhai --print
 
 let s = launch("grok", #{
     yolo: true,

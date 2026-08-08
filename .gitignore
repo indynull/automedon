@@ -8,3 +8,6 @@
 .aider.chat.history.md
 .aider.input.history
 .aider*
+
+# Scratch live-harness workspaces under the library crate
+/crates/automedon/examples/

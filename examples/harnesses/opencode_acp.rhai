@@ -1,7 +1,7 @@
 // Multi-turn OpenCode via ACP (`opencode acp`)
 // Binary: opencode | Path: extra.acp = true
 //
-//   medon run examples/harnesses/opencode_acp.rhai --print
+//   automedon run examples/harnesses/opencode_acp.rhai --print
 
 let s = launch("opencode", #{
     yolo: true,

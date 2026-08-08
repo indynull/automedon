@@ -1,7 +1,7 @@
 // Tools + hooks smoke: OpenCode
 // Binary: opencode | Stream: run --format json tool frames → Pre/PostToolUse
 //
-//   medon run examples/harnesses/opencode_tools.rhai --print
+//   automedon run examples/harnesses/opencode_tools.rhai --print
 
 let s = launch("opencode", #{
     yolo: true,

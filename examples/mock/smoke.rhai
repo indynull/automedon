@@ -1,5 +1,5 @@
 // Offline smoke — in-process mock only (no network).
-// Run: medon run examples/mock/smoke.rhai --print
+// Run: automedon run examples/mock/smoke.rhai --print
 
 let s = launch("mock", #{ scenario: "tools", timeout_ms: 5_000 });
 s.prompt("list the workspace");

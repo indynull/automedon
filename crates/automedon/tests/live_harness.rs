@@ -602,9 +602,14 @@ async fn live_aider_launch() {
         return;
     }
     // Headless multi-turn needs real model credentials; skip when none are present.
-    let has_key = ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "XAI_API_KEY", "OPENROUTER_API_KEY"]
-        .iter()
-        .any(|k| std::env::var(k).map(|v| !v.is_empty()).unwrap_or(false));
+    let has_key = [
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "XAI_API_KEY",
+        "OPENROUTER_API_KEY",
+    ]
+    .iter()
+    .any(|k| std::env::var(k).map(|v| !v.is_empty()).unwrap_or(false));
     if !has_key {
         eprintln!("skip aider: no model API keys in environment");
         return;
@@ -615,10 +620,7 @@ async fn live_aider_launch() {
         .extra("no_git", serde_json::json!(true))
         .build()
         .expect("build");
-    if let Err(e) = s
-        .prompt("Reply with the word AUTOMEDON_LIVE_T1 only")
-        .await
-    {
+    if let Err(e) = s.prompt("Reply with the word AUTOMEDON_LIVE_T1 only").await {
         eprintln!("skip aider: prompt failed: {e}");
         return;
     }

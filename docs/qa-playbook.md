@@ -12,15 +12,15 @@ normalizes the stream, and lets a script wait and assert multi-turn behavior.
 # 1. Install
 git clone https://github.com/indynull/automedon.git
 cd automedon
-cargo install --path crates/automedon-cli   # binary: medon
+cargo install --path crates/automedon-cli   # binary: automedon
 export PATH="$HOME/.cargo/bin:$PATH"
-medon adapters
+automedon adapters
 
 # 2. Product you already use (after that CLI alone accepts a prompt)
-which pi && medon run examples/harnesses/pi_workspace.rhai --print
-which grok && medon run examples/harnesses/grok_workspace.rhai --print
+which pi && automedon run examples/harnesses/pi_workspace.rhai --print
+which grok && automedon run examples/harnesses/grok_workspace.rhai --print
 # or:
-# medon run examples/harnesses/claude.rhai --print
+# automedon run examples/harnesses/claude.rhai --print
 ```
 
 If step 2 fails, check product CLI, auth, model, and adapter parse first -- then Automedon.
@@ -34,7 +34,7 @@ Same shape for every harness script:
 3. **Optional tools** -- when the stream exposes tools (see adapter page and harness scripts)
 
 ```bash
-medon run examples/harnesses/<adapter>.rhai --print
+automedon run examples/harnesses/<adapter>.rhai --print
 ```
 
 | Adapter | Script | What it checks |
@@ -72,17 +72,17 @@ Product model latency is not instant. Examples use:
 - launch default `timeout_ms: 180_000` (3 minutes)
 - expects at `120_000` for markers
 
-For slow models, raise both. For `medon shot`:
+For slow models, raise both. For `automedon shot`:
 
 ```bash
-medon shot claude "say hi only" --yolo --timeout-ms 120000
+automedon shot claude "say hi only" --yolo --timeout-ms 120000
 ```
 
 ## Debugging a failed run
 
 ```bash
 # Full Automedon + child logging
-RUST_LOG=automedon=debug medon run examples/harnesses/<name>.rhai --print
+RUST_LOG=automedon=debug automedon run examples/harnesses/<name>.rhai --print
 
 # Confirm the product alone still works
 # (use that product's own one-shot flags)
@@ -108,7 +108,7 @@ cargo test --workspace
 Live product runs on a runner (optional; needs secrets + product CLI):
 
 ```bash
-medon run examples/harnesses/<your-adapter>.rhai --print
+automedon run examples/harnesses/<your-adapter>.rhai --print
 # or: AUTOMEDON_LIVE_<ADAPTER>=1 cargo test -p automedon --test live_harness -- --ignored
 ```
 

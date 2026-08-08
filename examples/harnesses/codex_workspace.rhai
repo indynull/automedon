@@ -6,7 +6,7 @@
 // Multi-turn: exec resume <id|--last>
 // Workspace:  examples/automedon_demo/ (created by the agent)
 //
-//   medon run examples/harnesses/codex_workspace.rhai --print
+//   automedon run examples/harnesses/codex_workspace.rhai --print
 //
 // Markers: CODEX_WS_T1, CODEX_WS_OK
 

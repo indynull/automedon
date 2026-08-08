@@ -1,7 +1,7 @@
 // Tools + hooks smoke: Claude
 // Binary: claude | Stream: stream-json content-block tools → Pre/PostToolUse
 //
-//   medon run examples/harnesses/claude_tools.rhai --print
+//   automedon run examples/harnesses/claude_tools.rhai --print
 
 let s = launch("claude", #{
     yolo: true,

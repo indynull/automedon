@@ -114,5 +114,5 @@ Shorter smokes: `harnesses/pi.rhai`, `harnesses/pi_tools.rhai`, `harnesses/grok.
 
 ```bash
 # Contributors -- also covered by cargo test
-medon run examples/mock/full_driver_surface.rhai --print
+automedon run examples/mock/full_driver_surface.rhai --print
 ```

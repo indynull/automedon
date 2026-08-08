@@ -9,7 +9,7 @@ Handbook (mdBook): `docs/` + `book.toml` → `make book`. CI: `.github/workflows
 ## Layout
 
 - `crates/automedon` — library: events, expect, session, adapters, Rhai DSL
-- `crates/automedon-cli` — `medon` binary (`run`, `eval`, `shot`, `adapters`)
+- `crates/automedon-cli` — `automedon` binary (`run`, `eval`, `shot`, `adapters`)
 - `docs/` — handbook source (GitHub Pages)
 - `examples/mock/` — offline mock scripts
 - `examples/harnesses/` — product CLI scripts

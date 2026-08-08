@@ -38,7 +38,7 @@ make book-serve    # mdbook serve --open
 On tag push matching `v*` (example: `v0.1.0`):
 
 1. Build release binaries for Linux (x86_64) and macOS (x86_64 and/or aarch64 as configured)
-2. Upload `medon` artifacts
+2. Upload `automedon` artifacts
 3. Create a GitHub Release with those assets
 
 ```bash

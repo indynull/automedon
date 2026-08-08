@@ -7,7 +7,7 @@
 // Workspace:  examples/automedon_demo/
 //
 // Live QA entry for Grok (coding + tools + multi-turn):
-//   medon run examples/harnesses/grok_workspace.rhai --print
+//   automedon run examples/harnesses/grok_workspace.rhai --print
 //
 // (grok_coding.rhai is the same scenario class; this script is the documented
 //  live entry with stable markers GROK_WS_* .)

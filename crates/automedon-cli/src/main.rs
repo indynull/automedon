@@ -1,4 +1,4 @@
-//! `medon` — CLI for Automedon harness automation scripts.
+//! `automedon` — CLI for Automedon harness automation scripts.
 
 use std::path::PathBuf;
 use std::process::ExitCode;
@@ -9,7 +9,7 @@ use tracing_subscriber::EnvFilter;
 
 #[derive(Parser, Debug)]
 #[command(
-    name = "medon",
+    name = "automedon",
     about = "Drive local AI coding harness CLIs (Grok, Pi, Claude, and others)",
     version
 )]
@@ -62,7 +62,7 @@ enum Commands {
 #[tokio::main]
 async fn main() -> ExitCode {
     if let Err(e) = try_main().await {
-        eprintln!("medon: {e:#}");
+        eprintln!("automedon: {e:#}");
         return ExitCode::FAILURE;
     }
     ExitCode::SUCCESS
@@ -121,8 +121,8 @@ async fn try_main() -> Result<()> {
                 );
             }
             println!();
-            println!("Examples:  medon run examples/mock/smoke.rhai --print");
-            println!("           medon run examples/harnesses/<name>.rhai --print");
+            println!("Examples:  automedon run examples/mock/smoke.rhai --print");
+            println!("           automedon run examples/harnesses/<name>.rhai --print");
             println!("Docs:      handbook adapters + examples/harnesses/");
         }
         Commands::Run { script, print } => {

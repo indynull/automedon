@@ -8,7 +8,7 @@ to drive anything useful. Adapters and stream parsers can still surprise you.
 - Rust toolchain matching workspace `rust-version` (**1.85+**)
 - A product coding-agent CLI on `PATH` (for example `pi`, `grok`, `claude`) and that product's normal authentication
 
-## Install `medon`
+## Install `automedon`
 
 ```bash
 git clone https://github.com/indynull/automedon.git
@@ -16,21 +16,21 @@ cd automedon
 cargo install --path crates/automedon-cli
 ```
 
-`medon` lands in Cargo's bin directory (usually `~/.cargo/bin`). Put that directory on your `PATH`.
+`automedon` lands in Cargo's bin directory (usually `~/.cargo/bin`). Put that directory on your `PATH`.
 
 ```bash
-medon --version
-medon --help
-medon adapters
+automedon --version
+automedon --help
+automedon adapters
 ```
 
-`medon adapters` lists product adapters, default binaries, and multi-turn mechanisms.
+`automedon adapters` lists product adapters, default binaries, and multi-turn mechanisms.
 
 ### Run without installing
 
 ```bash
 cargo build -p automedon-cli --release
-./target/release/medon run examples/harnesses/pi.rhai --print
+./target/release/automedon run examples/harnesses/pi.rhai --print
 ```
 
 ## First product run
@@ -39,11 +39,11 @@ Confirm the product works alone, then run a harness script:
 
 ```bash
 # Examples -- pick one you already use
-which pi && medon run examples/harnesses/pi_workspace.rhai --print
-which grok && medon run examples/harnesses/grok_workspace.rhai --print
-which claude && medon run examples/harnesses/claude.rhai --print
+which pi && automedon run examples/harnesses/pi_workspace.rhai --print
+which grok && automedon run examples/harnesses/grok_workspace.rhai --print
+which claude && automedon run examples/harnesses/claude.rhai --print
 
-medon shot claude "say hi only" --yolo --timeout-ms 120000
+automedon shot claude "say hi only" --yolo --timeout-ms 120000
 ```
 
 Catalog: [Examples](examples.md). Checklist: [Smoke checklist](qa-playbook.md).

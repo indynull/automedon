@@ -5,7 +5,7 @@ Multi-turn smokes for specialized adapters. Each script header lists **binary**,
 scripts can break when product CLIs change.
 
 ```bash
-medon run examples/harnesses/<name>.rhai --print
+automedon run examples/harnesses/<name>.rhai --print
 ```
 
 | Script | Adapter | Checks |
@@ -32,8 +32,8 @@ medon run examples/harnesses/<name>.rhai --print
 Recommended live checks:
 
 ```bash
-medon run examples/harnesses/pi_workspace.rhai --print
-medon run examples/harnesses/grok_workspace.rhai --print
+automedon run examples/harnesses/pi_workspace.rhai --print
+automedon run examples/harnesses/grok_workspace.rhai --print
 ```
 
 Marker multi-turn scripts use `AUTOMEDON_T1` then `AUTOMEDON_T2` (both must appear after turn 2).

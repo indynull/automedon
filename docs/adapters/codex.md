@@ -25,9 +25,9 @@ tool input). Shell tools use `command_execution`. Optional ACP: `acp: true`
 
 ```bash
 codex exec --json "say hi only"
-medon run examples/harnesses/codex.rhai --print
+automedon run examples/harnesses/codex.rhai --print
 # multi-turn + tools:
-medon run examples/harnesses/codex_workspace.rhai --print
+automedon run examples/harnesses/codex_workspace.rhai --print
 ```
 
 Markers script: `AUTOMEDON_T1` / `AUTOMEDON_T2` and `session_id` from `thread.started`.

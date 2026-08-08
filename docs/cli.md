@@ -1,42 +1,42 @@
 # Command line
 
-Binary: **`medon`** (crate `automedon-cli`).
+Binary: **`automedon`** (crate `automedon-cli`).
 
 ```bash
 cargo install --path crates/automedon-cli
-medon --help
+automedon --help
 ```
 
-Errors print as `medon: ...` on stderr with a non-zero exit code.
+Errors print as `automedon: ...` on stderr with a non-zero exit code.
 
-## `medon adapters`
+## `automedon adapters`
 
 Operator table: name, default binary, capabilities, multi-turn mechanism, and pointers to examples.
 
 ```bash
-medon adapters
+automedon adapters
 ```
 
-## `medon run`
+## `automedon run`
 
 ```bash
-medon run path/to/script.rhai
-medon run path/to/script.rhai --print   # also print the script return value
+automedon run path/to/script.rhai
+automedon run path/to/script.rhai --print   # also print the script return value
 ```
 
-## `medon eval`
+## `automedon eval`
 
 ```bash
-medon eval 'let s = launch("grok", #{ yolo: true, timeout_ms: 120_000 }); s.run("say hi")'
+automedon eval 'let s = launch("grok", #{ yolo: true, timeout_ms: 120_000 }); s.run("say hi")'
 ```
 
-## `medon shot`
+## `automedon shot`
 
 One-shot without a script file:
 
 ```bash
-medon shot claude "say hi only" --yolo --timeout-ms 120000
-medon shot grok "say hi" --yolo --cwd /path/to/workspace
+automedon shot claude "say hi only" --yolo --timeout-ms 120000
+automedon shot grok "say hi" --yolo --cwd /path/to/workspace
 ```
 
 | Flag | Meaning |
@@ -50,5 +50,5 @@ medon shot grok "say hi" --yolo --cwd /path/to/workspace
 ## Logging
 
 ```bash
-RUST_LOG=automedon=debug medon run examples/harnesses/claude.rhai --print
+RUST_LOG=automedon=debug automedon run examples/harnesses/claude.rhai --print
 ```

@@ -4,11 +4,11 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
-description = "medon — CLI for Automedon harness scripts"
+description = "Automedon CLI for harness automation scripts"
 readme = "../../README.md"
 
 [[bin]]
-name = "medon"
+name = "automedon"
 path = "src/main.rs"
 
 [dependencies]

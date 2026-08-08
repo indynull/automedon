@@ -1,7 +1,7 @@
 // Tools + hooks smoke: GitHub Copilot CLI
 // Binary: copilot | Stream: JSONL tool.execution_* → Pre/PostToolUse
 //
-//   medon run examples/harnesses/copilot_tools.rhai --print
+//   automedon run examples/harnesses/copilot_tools.rhai --print
 
 let s = launch("copilot", #{
     yolo: true,

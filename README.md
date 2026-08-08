@@ -1,10 +1,10 @@
 # Automedon
 
-**Alpha.** Library and CLI (`medon`) to spawn local AI coding-agent CLIs, normalize their streams into events, and wait until expects match. Early project: APIs and adapters can change; do not treat this as a stability promise.
+**Alpha.** Library and CLI (`automedon`) to spawn local AI coding-agent CLIs, normalize their streams into events, and wait until expects match. Early project: APIs and adapters can change; do not treat this as a stability promise.
 
 | | |
 |--|--|
-| CLI | **`medon`** |
+| CLI | **`automedon`** |
 | Docs | [Handbook](https://indynull.github.io/automedon/) / [Smoke checklist](docs/qa-playbook.md) |
 | Architecture | [docs/architecture.md](docs/architecture.md) |
 
@@ -15,7 +15,7 @@ git clone https://github.com/indynull/automedon.git
 cd automedon
 cargo install --path crates/automedon-cli   # needs Rust 1.85+
 export PATH="$HOME/.cargo/bin:$PATH"
-medon adapters
+automedon adapters
 ```
 
 ## Quick start
@@ -24,11 +24,11 @@ Pick a product CLI you already use, confirm it works alone, then run a harness s
 
 ```bash
 # After `pi` / `grok` / `claude` / ... accepts a one-shot prompt on its own
-medon run examples/harnesses/pi_workspace.rhai --print
-medon run examples/harnesses/grok_workspace.rhai --print
-medon run examples/harnesses/claude.rhai --print
+automedon run examples/harnesses/pi_workspace.rhai --print
+automedon run examples/harnesses/grok_workspace.rhai --print
+automedon run examples/harnesses/claude.rhai --print
 
-medon shot claude "say hi only" --yolo --timeout-ms 120000
+automedon shot claude "say hi only" --yolo --timeout-ms 120000
 ```
 
 More adapters: [examples/harnesses/](examples/harnesses/). Multi-turn pattern: [docs/qa-playbook.md](docs/qa-playbook.md).
@@ -81,7 +81,7 @@ async fn main() -> automedon::Result<()> {
 | `generic` | `opts.bin` | escape hatch |
 
 ```bash
-medon adapters
+automedon adapters
 ```
 
 Coverage of live product streams varies; alpha means expect gaps. Per-adapter notes: [docs/adapters/](docs/adapters/). Smoke scripts: [examples/harnesses/](examples/harnesses/).

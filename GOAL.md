@@ -1,6 +1,6 @@
 # Automedon 1.0 product goal
 
-Drive local AI coding-agent CLIs through one event model: specialized adapters, a Rust library, and a Rhai scripting surface. CLI binary: **`medon`**.
+Drive local AI coding-agent CLIs through one event model: specialized adapters, a Rust library, and a Rhai scripting surface. CLI binary: **`automedon`**.
 
 ## What “done” means
 

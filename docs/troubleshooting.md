@@ -4,7 +4,7 @@
 
 | Symptom | What to try |
 |---------|-------------|
-| `medon: command not found` | `cargo install --path crates/automedon-cli`; put `~/.cargo/bin` on `PATH` |
+| `automedon: command not found` | `cargo install --path crates/automedon-cli`; put `~/.cargo/bin` on `PATH` |
 | Rust version error | Upgrade rustc to workspace `rust-version` (1.85+) |
 
 ## Scripts
@@ -30,10 +30,10 @@
 ## Sanity checks
 
 ```bash
-medon adapters
+automedon adapters
 # Product alone still works?
 # Then:
-medon run examples/harnesses/pi.rhai --print
+automedon run examples/harnesses/pi.rhai --print
 # or claude.rhai / grok.rhai / ...
 ```
 

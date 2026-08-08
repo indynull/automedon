@@ -22,5 +22,5 @@ Optional: `acp: true`, `approval_mode`, `worktree`, `allowed_tools`, `binary`.
 
 ```bash
 gemini -p "hi" -o text -y
-medon run examples/harnesses/gemini.rhai --print
+automedon run examples/harnesses/gemini.rhai --print
 ```

@@ -20,9 +20,9 @@ Each needs that product CLI on `PATH` and a working product login.
 
 ```bash
 # After the product CLI alone accepts a prompt
-medon run examples/harnesses/pi_workspace.rhai --print
-medon run examples/harnesses/grok_workspace.rhai --print
-medon run examples/harnesses/claude.rhai --print
+automedon run examples/harnesses/pi_workspace.rhai --print
+automedon run examples/harnesses/grok_workspace.rhai --print
+automedon run examples/harnesses/claude.rhai --print
 ```
 
 Product scripts document binary, auth, stream, and multi-turn in the file header.

@@ -22,5 +22,5 @@ Text comes from `assistant.message_delta` (not re-emitted on the full `assistant
 
 ```bash
 copilot -p "say hi only" --output-format json --allow-all
-medon run examples/harnesses/copilot.rhai --print
+automedon run examples/harnesses/copilot.rhai --print
 ```

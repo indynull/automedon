@@ -18,9 +18,9 @@
 
 ```bash
 # After product login works alone
-medon run examples/harnesses/pi_workspace.rhai --print
-medon run examples/harnesses/grok_workspace.rhai --print
-medon run examples/harnesses/claude.rhai --print
+automedon run examples/harnesses/pi_workspace.rhai --print
+automedon run examples/harnesses/grok_workspace.rhai --print
+automedon run examples/harnesses/claude.rhai --print
 ```
 
 Full table: [harnesses/README.md](harnesses/README.md).

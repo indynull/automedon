@@ -22,5 +22,5 @@ Session id appears on `step_start` / frames as `sessionID`. Optional ACP: `acp: 
 
 ```bash
 opencode run "say hi" --format json
-medon run examples/harnesses/opencode.rhai --print
+automedon run examples/harnesses/opencode.rhai --print
 ```

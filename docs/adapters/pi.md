@@ -35,6 +35,6 @@ Tool lifecycle maps to `ToolCall` + hooks (`PreToolUse` / `PostToolUse`). Tools 
 
 ```bash
 pi -p "say hi only" --mode json
-medon run examples/harnesses/pi.rhai --print
-medon run examples/harnesses/pi_tools.rhai --print
+automedon run examples/harnesses/pi.rhai --print
+automedon run examples/harnesses/pi_tools.rhai --print
 ```

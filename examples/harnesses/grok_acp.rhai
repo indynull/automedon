@@ -1,7 +1,7 @@
 // Multi-turn Grok via ACP (`grok agent stdio`)
 // Binary: grok | Auth: Grok login | Path: extra.acp = true
 //
-//   medon run examples/harnesses/grok_acp.rhai --print
+//   automedon run examples/harnesses/grok_acp.rhai --print
 
 let s = launch("grok", #{
     yolo: true,

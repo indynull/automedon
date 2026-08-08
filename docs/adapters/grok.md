@@ -29,6 +29,6 @@ Also: `examples/harnesses/grok_acp.rhai`, `grok_tools.rhai`, `grok_smoke.rhai`, 
 
 ```bash
 grok -p "say hi only" --output-format streaming-json --always-approve
-medon run examples/harnesses/grok.rhai --print
-medon run examples/harnesses/grok_tools.rhai --print
+automedon run examples/harnesses/grok.rhai --print
+automedon run examples/harnesses/grok_tools.rhai --print
 ```

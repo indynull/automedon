@@ -2,7 +2,7 @@
 // Binary: gemini | Stream: stream-json tools → Pre/PostToolUse
 // Requires working Gemini auth (not IneligibleTier).
 //
-//   medon run examples/harnesses/gemini_tools.rhai --print
+//   automedon run examples/harnesses/gemini_tools.rhai --print
 
 let s = launch("gemini", #{
     yolo: true,

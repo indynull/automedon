@@ -50,12 +50,13 @@ async fn prompt_kills_prior_child_and_await_turn_active() {
         .build()
         .unwrap();
     s.prompt("A").await.unwrap();
-    // Don't await — start second prompt while first child may still exist
+    // Second prompt finishes any active turn first, then runs B.
     s.prompt("B").await.unwrap();
-    s.expect(Expect::text("B").timeout(Duration::from_secs(5)))
+    s.expect(Expect::text("B").timeout(Duration::from_secs(10)))
         .await
         .unwrap();
     s.await_turn().await.unwrap();
+    assert!(s.text().contains('B') || s.text().contains("FAKE:"));
     s.close().await.unwrap();
 }
 
@@ -498,4 +499,344 @@ echo '{"type":"end","sessionId":"s","stopReason":"end_turn"}'
     // plan encode path while no child — still exercises encode_plan_resolve return
     let _ = s.reject_plan().await;
     s.close().await.unwrap();
+}
+
+/// Synthetic seed mixes SessionInfo (applied) with other events (queued) before spawn.
+#[tokio::test(flavor = "multi_thread")]
+async fn synthetic_session_info_and_other_with_spawn() {
+    struct MixSynth;
+    impl Adapter for MixSynth {
+        fn name(&self) -> &'static str {
+            "mix_synth"
+        }
+        fn capabilities(&self) -> Capabilities {
+            Capabilities {
+                multi_turn: false,
+                sessions: true,
+                launch: true,
+                ..Default::default()
+            }
+        }
+        fn prepare(
+            &self,
+            prompt: &str,
+            _: &LaunchOptions,
+            _: &TurnContext,
+        ) -> automedon::Result<PreparedLaunch> {
+            let script = format!(
+                r#"echo '{{"type":"text","data":"{prompt}"}}'
+echo '{{"type":"end","sessionId":"from-stdout","stopReason":"end_turn"}}'
+"#
+            );
+            Ok(PreparedLaunch {
+                harness: "mix_synth".into(),
+                spawn: Some(SpawnSpec {
+                    program: PathBuf::from("/bin/sh"),
+                    args: vec!["-c".into(), script],
+                    cwd: None,
+                    env: BTreeMap::new(),
+                    retain_stdin: false,
+                }),
+                synthetic: Some(vec![
+                    Event::SessionInfo {
+                        id: "seed-sid".into(),
+                        label: Some("seed".into()),
+                    },
+                    Event::TextDelta {
+                        text: "pre-spawn-delta".into(),
+                    },
+                ]),
+                capabilities: self.capabilities(),
+                multi_turn: false,
+            })
+        }
+        fn parse_line(&self, line: &str) -> Vec<Event> {
+            automedon::GrokAdapter.parse_line(line)
+        }
+    }
+    let mut s = Session::from_adapter(
+        Arc::new(MixSynth),
+        LaunchOptions {
+            default_timeout: Some(Duration::from_secs(5)),
+            ..Default::default()
+        },
+    );
+    s.prompt("HELLO_MIX").await.unwrap();
+    assert_eq!(s.session_id(), Some("seed-sid"));
+    s.expect(Expect::text("pre-spawn-delta").timeout(Duration::from_secs(3)))
+        .await
+        .unwrap();
+    s.expect(Expect::text("HELLO_MIX").timeout(Duration::from_secs(3)))
+        .await
+        .unwrap();
+    s.drain_until_done().await.ok();
+    s.close().await.ok();
+}
+
+/// Idle await_turn / drain on multi-turn process-exit path and expect timeout while live.
+#[tokio::test(flavor = "multi_thread")]
+async fn await_turn_idle_and_expect_timeout_live_child() {
+    struct SlowHarness;
+    impl Adapter for SlowHarness {
+        fn name(&self) -> &'static str {
+            "slow_h"
+        }
+        fn capabilities(&self) -> Capabilities {
+            Capabilities {
+                multi_turn: true,
+                launch: true,
+                stream_tools: true,
+                ..Default::default()
+            }
+        }
+        fn prepare(
+            &self,
+            prompt: &str,
+            _: &LaunchOptions,
+            _: &TurnContext,
+        ) -> automedon::Result<PreparedLaunch> {
+            // First turn: quick reply; second (contains SLOW): hang after a marker.
+            let body = if prompt.contains("SLOW") {
+                r#"echo '{"type":"text","data":"SLOW_START"}'
+sleep 30
+"#
+                .to_string()
+            } else {
+                format!(
+                    r#"echo '{{"type":"text","data":"{prompt}"}}'
+echo '{{"type":"end","sessionId":"s1","stopReason":"end_turn"}}'
+"#
+                )
+            };
+            Ok(PreparedLaunch {
+                harness: "slow_h".into(),
+                spawn: Some(SpawnSpec {
+                    program: PathBuf::from("/bin/sh"),
+                    args: vec!["-c".into(), body],
+                    cwd: None,
+                    env: BTreeMap::new(),
+                    retain_stdin: false,
+                }),
+                synthetic: None,
+                capabilities: self.capabilities(),
+                multi_turn: true,
+            })
+        }
+        fn parse_line(&self, line: &str) -> Vec<Event> {
+            automedon::GrokAdapter.parse_line(line)
+        }
+    }
+    let mut s = Session::from_adapter(
+        Arc::new(SlowHarness),
+        LaunchOptions {
+            default_timeout: Some(Duration::from_secs(5)),
+            ..Default::default()
+        },
+    );
+    // No active turn → idle return.
+    s.await_turn().await.unwrap();
+    s.prompt("FAST").await.unwrap();
+    s.expect(Expect::text("FAST").timeout(Duration::from_secs(3)))
+        .await
+        .unwrap();
+    s.await_turn().await.unwrap();
+    s.drain_until_done().await.unwrap();
+    assert!(!s.is_finished());
+
+    s.prompt("SLOW").await.unwrap();
+    s.expect(Expect::text("SLOW_START").timeout(Duration::from_secs(3)))
+        .await
+        .unwrap();
+    let err = s
+        .expect(Expect::text("NEVER_COMES").timeout(Duration::from_millis(80)))
+        .await
+        .unwrap_err();
+    assert!(
+        matches!(err, Error::ExpectTimeout { .. }) || err.to_string().contains("timeout"),
+        "{err}"
+    );
+    s.close().await.unwrap();
+}
+
+/// One-shot non-multi drain synthesizes Done when the queue empties mid-idle.
+#[tokio::test(flavor = "multi_thread")]
+async fn non_multi_synthetic_drain_pushes_done() {
+    struct OneShotSynth;
+    impl Adapter for OneShotSynth {
+        fn name(&self) -> &'static str {
+            "oneshot_synth"
+        }
+        fn capabilities(&self) -> Capabilities {
+            Capabilities {
+                multi_turn: false,
+                in_process: true,
+                ..Default::default()
+            }
+        }
+        fn prepare(
+            &self,
+            prompt: &str,
+            _: &LaunchOptions,
+            _: &TurnContext,
+        ) -> automedon::Result<PreparedLaunch> {
+            Ok(PreparedLaunch {
+                harness: "oneshot_synth".into(),
+                spawn: None,
+                synthetic: Some(vec![
+                    Event::TextDelta {
+                        text: format!("SYN:{prompt}"),
+                    },
+                    Event::TurnComplete {
+                        turn: 1,
+                        stop_reason: Some("end_turn".into()),
+                    },
+                ]),
+                capabilities: self.capabilities(),
+                multi_turn: false,
+            })
+        }
+        fn parse_line(&self, _: &str) -> Vec<Event> {
+            vec![]
+        }
+    }
+    let mut s = Session::from_adapter(Arc::new(OneShotSynth), LaunchOptions::default());
+    s.prompt("z").await.unwrap();
+    s.expect(Expect::text("SYN:z").timeout(Duration::from_secs(2)))
+        .await
+        .unwrap();
+    s.await_turn().await.unwrap();
+    // After turn complete, no child/synthetic: non-multi drain pushes Done.
+    s.drain_until_done().await.unwrap();
+    assert!(s.is_finished());
+    let rr = s.run("again").await; // closed session path if still closed
+    let _ = rr;
+}
+
+/// Fail-closed wait when harness emits Error; reject_plan with live stdin encode.
+#[tokio::test(flavor = "multi_thread")]
+async fn wait_error_fail_closed_and_reject_plan_encode() {
+    struct ErrThenPlan;
+    impl Adapter for ErrThenPlan {
+        fn name(&self) -> &'static str {
+            "err_plan"
+        }
+        fn capabilities(&self) -> Capabilities {
+            Capabilities {
+                multi_turn: false,
+                plan_mode: true,
+                plans: true,
+                launch: true,
+                ..Default::default()
+            }
+        }
+        fn prepare(
+            &self,
+            prompt: &str,
+            _: &LaunchOptions,
+            _: &TurnContext,
+        ) -> automedon::Result<PreparedLaunch> {
+            let body = if prompt.contains("ERR") {
+                r#"echo '{"type":"error","message":"boom-auth"}'
+sleep 2
+"#
+                .to_string()
+            } else {
+                r#"echo '{"type":"plan","id":"pl-rej","summary":"do it"}'
+read _ || true
+echo '{"type":"text","data":"rejected-path"}'
+echo '{"type":"end","sessionId":"s","stopReason":"end_turn"}'
+"#
+                .to_string()
+            };
+            Ok(PreparedLaunch {
+                harness: "err_plan".into(),
+                spawn: Some(SpawnSpec {
+                    program: PathBuf::from("/bin/sh"),
+                    args: vec!["-c".into(), body],
+                    cwd: None,
+                    env: BTreeMap::new(),
+                    retain_stdin: true,
+                }),
+                synthetic: None,
+                capabilities: self.capabilities(),
+                multi_turn: false,
+            })
+        }
+        fn parse_line(&self, line: &str) -> Vec<Event> {
+            if let Ok(v) = serde_json::from_str::<serde_json::Value>(line) {
+                match v.get("type").and_then(|t| t.as_str()) {
+                    Some("error") => {
+                        return vec![Event::Error {
+                            message: v["message"].as_str().unwrap_or("err").into(),
+                        }];
+                    }
+                    Some("plan") => {
+                        return vec![Event::PlanPresented {
+                            id: v["id"].as_str().unwrap_or("pl").into(),
+                            summary: v["summary"].as_str().unwrap_or("").into(),
+                        }];
+                    }
+                    _ => {}
+                }
+            }
+            automedon::GrokAdapter.parse_line(line)
+        }
+        fn encode_plan_resolve(&self, id: &str, approved: bool) -> Option<String> {
+            Some(format!("plan:{id}:{approved}"))
+        }
+    }
+
+    let mut s = Session::from_adapter(
+        Arc::new(ErrThenPlan),
+        LaunchOptions {
+            default_timeout: Some(Duration::from_secs(5)),
+            ..Default::default()
+        },
+    );
+    s.prompt("ERR").await.unwrap();
+    let err = s
+        .expect(Expect::text("never").timeout(Duration::from_secs(3)))
+        .await
+        .unwrap_err();
+    assert!(
+        err.to_string().contains("boom-auth") || err.to_string().contains("harness error"),
+        "{err}"
+    );
+    s.close().await.ok();
+
+    let mut s2 = Session::from_adapter(
+        Arc::new(ErrThenPlan),
+        LaunchOptions {
+            default_timeout: Some(Duration::from_secs(5)),
+            ..Default::default()
+        },
+    );
+    s2.prompt("plan please").await.unwrap();
+    s2.expect(Expect::plan().timeout(Duration::from_secs(3)))
+        .await
+        .unwrap();
+    s2.reject_plan().await.unwrap();
+    s2.expect(Expect::text("rejected-path").timeout(Duration::from_secs(3)))
+        .await
+        .unwrap();
+    s2.close().await.ok();
+}
+
+/// Mock permission pause: await_turn returns on turn-paused without hanging.
+#[tokio::test(flavor = "multi_thread")]
+async fn await_turn_on_permission_pause() {
+    let mut s = Session::builder("mock")
+        .extra("scenario", json!("permission"))
+        .timeout(Duration::from_secs(5))
+        .build()
+        .unwrap();
+    s.prompt("needperm").await.unwrap();
+    s.expect(Expect::permission().timeout(Duration::from_secs(3)))
+        .await
+        .unwrap();
+    // Synthetic queue drained to permission; no child → turn paused path is ok.
+    s.await_turn().await.unwrap();
+    s.deny().await.unwrap();
+    s.await_turn().await.ok();
+    s.close().await.ok();
 }

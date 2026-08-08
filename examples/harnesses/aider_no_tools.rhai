@@ -1,7 +1,7 @@
 // Aider has no agent tool stream on --message path.
 // Shared wait_tool / wait_hook must fail closed with a capability error.
 //
-//   medon run examples/harnesses/aider_no_tools.rhai --print
+//   automedon run examples/harnesses/aider_no_tools.rhai --print
 
 let s = launch("aider", #{
     no_git: true,

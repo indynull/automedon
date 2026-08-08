@@ -6,7 +6,7 @@
 // Multi-turn: --resume / --continue
 // Workspace:  examples/automedon_demo/
 //
-//   medon run examples/harnesses/cursor_workspace.rhai --print
+//   automedon run examples/harnesses/cursor_workspace.rhai --print
 //
 // Markers: CURSOR_WS_T1, CURSOR_WS_OK
 

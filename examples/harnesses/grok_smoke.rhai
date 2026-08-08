@@ -1,7 +1,7 @@
 // One-turn smoke: Grok Build
 // Binary: grok | Auth: Grok login | Stream: streaming-json
 //
-//   medon run examples/harnesses/grok_smoke.rhai --print
+//   automedon run examples/harnesses/grok_smoke.rhai --print
 
 let s = launch("grok", #{
     yolo: true,

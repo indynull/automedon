@@ -6,7 +6,7 @@
 // Multi-turn: --resume / --continue
 // Workspace:  examples/automedon_demo/ (created by the agent)
 //
-//   medon run examples/harnesses/claude_workspace.rhai --print
+//   automedon run examples/harnesses/claude_workspace.rhai --print
 //
 // Markers: CLAUDE_WS_T1, CLAUDE_WS_OK
 

@@ -2,7 +2,7 @@
 // Binary: pi | Auth: Pi provider credentials
 // Stream: --mode json; tool lifecycle → PreToolUse / PostToolUse
 //
-//   medon run examples/harnesses/pi_tools.rhai --print
+//   automedon run examples/harnesses/pi_tools.rhai --print
 //
 // Optional launch extras: provider, model, tools, extension
 

@@ -7,7 +7,7 @@
 //
 // Daily QA loop:
 //   1. Confirm `codex` works outside Automedon (login / one-shot prompt).
-//   2. medon run examples/harnesses/codex.rhai --print
+//   2. automedon run examples/harnesses/codex.rhai --print
 //   3. Expect AUTOMEDON_T1 then AUTOMEDON_T2; print session id after turn 1.
 //
 // Optional: raise timeout_ms for slow models; set model/cwd in the launch map.

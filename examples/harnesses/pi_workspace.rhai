@@ -7,7 +7,7 @@
 // Workspace:  examples/automedon_demo/ (created by the agent)
 //
 // Live QA entry for Pi (tools + multi-turn continuity):
-//   medon run examples/harnesses/pi_workspace.rhai --print
+//   automedon run examples/harnesses/pi_workspace.rhai --print
 //
 // Success markers: PI_WS_T1, PI_WS_T2, PI_WS_OK
 

@@ -29,5 +29,5 @@ Optional: `chat_history_file`, `openai_api_base`, `xai_api_key` / `openai_api_ke
 
 ```bash
 aider --help
-medon run examples/harnesses/aider.rhai --print   # set model first if required
+automedon run examples/harnesses/aider.rhai --print   # set model first if required
 ```

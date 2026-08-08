@@ -1,6 +1,6 @@
 # Rhai scripts
 
-Scripts are ordinary Rhai files (`.rhai`). Entry points: `medon run` and `medon eval`.
+Scripts are ordinary Rhai files (`.rhai`). Entry points: `automedon run` and `automedon eval`.
 
 Handbook code samples use the **`rust`** fence language so highlight.js can style them. highlight.js has no Rhai grammar; the [Rhai book](https://rhai.rs/book/about/related.html) recommends Rust (or JavaScript when you need string interpolation).
 

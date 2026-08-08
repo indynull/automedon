@@ -5,7 +5,7 @@ An **adapter** is the only place that knows a product's binary name, flags, and 
 List what this build implements:
 
 ```bash
-medon adapters
+automedon adapters
 ```
 
 ## Product catalog

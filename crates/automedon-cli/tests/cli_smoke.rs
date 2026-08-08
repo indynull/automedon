@@ -1,13 +1,13 @@
 use assert_cmd::Command;
 use predicates::prelude::*;
 
-fn medon() -> Command {
-    Command::cargo_bin("medon").unwrap()
+fn automedon() -> Command {
+    Command::cargo_bin("automedon").unwrap()
 }
 
 #[test]
 fn adapters_lists_mock() {
-    medon()
+    automedon()
         .arg("adapters")
         .assert()
         .success()
@@ -22,7 +22,7 @@ fn adapters_lists_mock() {
 
 #[test]
 fn adapters_lists_default_binaries() {
-    let out = medon().arg("adapters").output().unwrap();
+    let out = automedon().arg("adapters").output().unwrap();
     let s = String::from_utf8_lossy(&out.stdout);
     assert!(out.status.success());
     // Operator-facing binary column from AdapterKind::default_binaries.
@@ -33,7 +33,7 @@ fn adapters_lists_default_binaries() {
 
 #[test]
 fn shot_mock_echo() {
-    medon()
+    automedon()
         .args(["shot", "mock", "hello", "--scenario", "echo"])
         .assert()
         .success()
@@ -44,7 +44,7 @@ fn shot_mock_echo() {
 fn run_multi_turn_example() {
     let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
     let script = root.join("examples/mock/multi_turn.rhai");
-    medon()
+    automedon()
         .current_dir(&root)
         .args(["run", script.to_str().unwrap(), "--print"])
         .assert()
@@ -54,7 +54,7 @@ fn run_multi_turn_example() {
 
 #[test]
 fn eval_snippet() {
-    medon()
+    automedon()
         .args([
             "eval",
             r#"let s = launch("mock", #{ scenario: "echo" }); s.run("z")"#,
@@ -66,7 +66,7 @@ fn eval_snippet() {
 
 #[test]
 fn run_missing_script_fails() {
-    medon()
+    automedon()
         .args(["run", "/no/such/script.rhai"])
         .assert()
         .failure();
@@ -74,5 +74,5 @@ fn run_missing_script_fails() {
 
 #[test]
 fn help_works() {
-    medon().arg("--help").assert().success();
+    automedon().arg("--help").assert().success();
 }
