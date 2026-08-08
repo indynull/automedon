@@ -1,7 +1,6 @@
 # Getting started
 
-Automedon is **alpha**. You need a real product CLI on `PATH` (and its own login)
-to drive anything useful. Adapters and stream parsers can still surprise you.
+You need a real product CLI on `PATH` (and its own login) to drive anything useful.
 
 ## Requirements
 

@@ -1,5 +1,4 @@
-//! Structural check: user-facing markdown stays free of fake adoption claims
-//! and states alpha quality in the README and handbook introduction.
+//! Structural check: user-facing markdown stays free of fake adoption claims.
 
 use std::path::{Path, PathBuf};
 
@@ -92,24 +91,6 @@ fn user_facing_docs_avoid_adoption_and_production_claims() {
         unicode_hits.is_empty(),
         "fancy unicode in user docs (use ASCII punctuation):\n{}",
         unicode_hits.join("\n")
-    );
-}
-
-#[test]
-fn readme_and_introduction_state_alpha() {
-    let root = workspace_root();
-    let readme = std::fs::read_to_string(root.join("README.md")).expect("README");
-    let intro = std::fs::read_to_string(root.join("docs/introduction.md")).expect("introduction");
-    // Alpha must appear early (first screen of content).
-    let readme_head: String = readme.chars().take(800).collect();
-    let intro_head: String = intro.chars().take(800).collect();
-    assert!(
-        readme_head.to_ascii_lowercase().contains("alpha"),
-        "README must state alpha near the top"
-    );
-    assert!(
-        intro_head.to_ascii_lowercase().contains("alpha"),
-        "docs/introduction.md must state alpha near the top"
     );
 }
 

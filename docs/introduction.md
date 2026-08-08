@@ -1,6 +1,6 @@
 # Introduction
 
-**Automedon** is an **alpha** Rust library and CLI (`automedon`) that spawns local AI coding-agent CLIs, turns their stdout into events, and blocks until your expects and waits match. The project is new: the public API, adapter flags, and stream parsers can change without a long deprecation cycle.
+**Automedon** is a Rust library and CLI (`automedon`) that spawns local AI coding-agent CLIs, turns their stdout into events, and blocks until your expects and waits match.
 
 | Piece | What |
 |-------|------|

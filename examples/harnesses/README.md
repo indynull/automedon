@@ -1,8 +1,7 @@
 # Product harness examples
 
 Multi-turn smokes for specialized adapters. Each script header lists **binary**,
-**auth**, **stream flags**, and **multi-turn** mechanism. Project is alpha:
-scripts can break when product CLIs change.
+**auth**, **stream flags**, and **multi-turn** mechanism.
 
 ```bash
 automedon run examples/harnesses/<name>.rhai --print

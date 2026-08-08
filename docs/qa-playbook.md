@@ -1,7 +1,6 @@
 # Smoke checklist (product CLIs)
 
 How to check that Automedon can still drive a coding-agent CLI you care about.
-Automedon is **alpha**: treat failures as possible adapter bugs, not only product bugs.
 
 Automedon does not replace the product CLI or log you in. It spawns that binary,
 normalizes the stream, and lets a script wait and assert multi-turn behavior.

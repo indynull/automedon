@@ -1,6 +1,6 @@
 # Automedon
 
-**Alpha.** Library and CLI (`automedon`) to spawn local AI coding-agent CLIs, normalize their streams into events, and wait until expects match. Early project: APIs and adapters can change; do not treat this as a stability promise.
+Library and CLI (`automedon`) to spawn local AI coding-agent CLIs, normalize their streams into events, and wait until expects match.
 
 | | |
 |--|--|
@@ -84,7 +84,7 @@ async fn main() -> automedon::Result<()> {
 automedon adapters
 ```
 
-Coverage of live product streams varies; alpha means expect gaps. Per-adapter notes: [docs/adapters/](docs/adapters/). Smoke scripts: [examples/harnesses/](examples/harnesses/).
+Per-adapter notes: [docs/adapters/](docs/adapters/). Smoke scripts: [examples/harnesses/](examples/harnesses/).
 
 ## Develop
 
